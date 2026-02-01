@@ -1,0 +1,4 @@
+#!/bin/sh
+powershell -NoProfile -ExecutionPolicy Bypass -File "$(dirname "$0")/pre-push.ps1"
+code=$?
+exit $code

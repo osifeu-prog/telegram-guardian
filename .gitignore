@@ -1,0 +1,24 @@
+﻿# secrets
+.env
+.env.*
+
+# runtime logs
+logs/
+
+# telegram session artifacts
+**/*.session
+**/*.session-journal
+**/*.sqlite
+
+# python
+__pycache__/
+*.pyc
+.venv/
+
+# node
+node_modules/
+dist/
+
+# local env
+out/.env.*
+
