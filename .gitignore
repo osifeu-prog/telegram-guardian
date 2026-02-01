@@ -1,24 +1,17 @@
-﻿# secrets
-.env
-.env.*
-
-# runtime logs
-logs/
-
-# telegram session artifacts
-**/*.session
-**/*.session-journal
-**/*.sqlite
-
-# python
+﻿# python
+.venv/
 __pycache__/
 *.pyc
-.venv/
+
+# outputs / artifacts
+out/
+logs/
 
 # node
 node_modules/
 dist/
+build/
 
-# local env
-out/.env.*
-
+# OS
+.DS_Store
+Thumbs.db
