@@ -96,7 +96,8 @@ $rows = foreach ($d in $report.dialogs) {
 foreach ($w in $safeWords) {
   if ($titleNorm -match [regex]::Escape($w.ToLowerInvariant())) { $safeHit += $w }
 }
-  $unread = 0
+
+$unread = 0
   try { $unread = [int]$d.unread_count } catch { $unread = 0 }
 
   $score = 0
