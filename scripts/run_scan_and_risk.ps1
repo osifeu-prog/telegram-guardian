@@ -39,11 +39,8 @@ Write-Host "== Risk report ==" -ForegroundColor Cyan
 Write-Host "== Parse risk script ==" -ForegroundColor Cyan
 if (-not $riskScript) { throw "riskScript not resolved" }
 $rp = (Resolve-Path $riskScript).Path
-powershell -NoProfile -ExecutionPolicy Bypass -Command `
-  "[ScriptBlock]::Create((Get-Content -Raw -LiteralPath '$rp')) | Out-Null"
-
-& $riskScript -InPath ".\out\scan_report.json" -OutPath ".\out\risk_report.csv"
-
+Write-Host ("Parsing: " + $rp) -ForegroundColor DarkCyan
+[ScriptBlock]::Create((Get-Content -Raw -LiteralPath $rp)) | Out-Null
 Write-Host "== Investor report ==" -ForegroundColor Cyan
 if (Test-Path ".\scripts\make_investor_status.ps1") {
   powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\make_investor_status.ps1
