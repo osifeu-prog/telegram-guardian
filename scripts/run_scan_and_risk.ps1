@@ -37,9 +37,14 @@ if (-not (Test-Path ".\out\scan_report.json")) { throw "scan_report.json missing
 Write-Host "== Risk report ==" -ForegroundColor Cyan
 & $riskScript -InPath ".\out\scan_report.json" -OutPath ".\out\risk_report.csv"
 
+Write-Host "== Investor report ==" -ForegroundColor Cyan
+if (Test-Path ".\scripts\make_investor_status.ps1") {
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\make_investor_status.ps1
+}
+
 Write-Host "== Top results ==" -ForegroundColor Cyan
 Import-Csv .\out\risk_report.csv |
-  Select-Object -First 30 risk_level,risk_score,unread_count,peer_type,peer_id,title,risk_hits |
+  Select-Object -First 30 risk_level,risk_score,unread_count,peer_type,peer_id,title,risk_hits,safe_hits |
   Format-Table -AutoSize
 
 if (-not $NoOpen) {
