@@ -37,7 +37,7 @@ function Fix-Mojibake([string]$s) {
       if ($ch -eq [char]0xFFFD) { $bad += 8 }   # 
       elseif ($ch -eq '?')      { $bad += 1 }
     }
-    $bad += ([regex]::Matches($x, "أƒ|أ‚|أ¢|أ—|").Count * 2)
+    $bad += ([regex]::Matches($x, "Ã|Â|â|×|").Count * 2)
     return $bad
   }
 
@@ -93,11 +93,11 @@ $rows = foreach ($d in $report.dialogs) {
   }
 
   $safeHit = @()
-foreach ($w in $safeWords) {
-  if ($titleNorm -match [regex]::Escape($w.ToLowerInvariant())) { $safeHit += $w }
-}
+  foreach ($w in $safeWords) {
+    if ($titleNorm -match [regex]::Escape($w.ToLowerInvariant())) { $safeHit += $w }
+  }
 
-$unread = 0
+  $unread = 0
   try { $unread = [int]$d.unread_count } catch { $unread = 0 }
 
   $score = 0
