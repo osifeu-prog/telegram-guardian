@@ -16,6 +16,8 @@ if ($Phone) { $env:TG_PHONE = $Phone }
 
 # Quick sanity
 if (-not (Test-Path "packages\tg_engine\src\tg_engine\poc_scan.py")) { throw "Missing poc_scan.py" }
+
+$riskScript = $null
 if (Test-Path "scripts\make_risk_report_ps5.ps1") {
   $riskScript = ".\scripts\make_risk_report_ps5.ps1"
 } elseif (Test-Path "scripts\make_risk_report.ps1") {
