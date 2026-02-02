@@ -1,17 +1,16 @@
-# Telegram Guardian
+# telegram-guardian
 
-Privacy-first Telegram account protection & cleanup system (MTProto engine + API + Workers + Telegram Mini App).
+## Docs
+- docs/00_OVERVIEW.md
+- docs/01_ARCHITECTURE.md
+- docs/02_COMPONENTS.md
+- docs/03_DATA_FLOW.md
+- docs/04_SECURITY_GUARDRAILS.md
+- docs/05_DEV_WORKFLOW.md
+- docs/06_DEPLOYMENT.md
+- docs/07_OPERATIONS.md
+- docs/08_TROUBLESHOOTING.md
+- docs/09_GLOSSARY.md
 
-## Repo layout
-- apps/api      : FastAPI Gateway
-- apps/worker   : Background workers (queue)
-- apps/tma      : Telegram Mini App (React)
-- packages/tg_engine : MTProto engine wrapper (Telethon/Pyrogram)
-- docs          : source of truth documentation
-
-## How we work
-Update:
-- docs/STATE.md (truth now)
-- docs/NEXT.md  (one-step focus)
-- docs/DECISIONS/ADR-*.md (why)
-
+## Project State
+- STATE.md (local working state, see note in DECISIONS.md)
