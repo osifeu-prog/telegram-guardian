@@ -32,12 +32,13 @@ function Fix-Mojibake([string]$s) {
 
   function Score([string]$x) {
     if ([string]::IsNullOrEmpty($x)) { return 999999 }
+  $bad = 0
     $bad = 0
     foreach ($ch in $x.ToCharArray()) {
       if ($ch -eq [char]0xFFFD) { $bad += 8 }   # 
       elseif ($ch -eq '?')      { $bad += 1 }
     }
-    $bad += ([regex]::Matches($x, "Ã|Â|â|×|").Count * 2)
+    $bad += ([regex]::Matches($x, "أƒ|أ‚|أ¢|أ—|").Count * 2)
     return $bad
   }
 
