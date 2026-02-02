@@ -16,7 +16,13 @@ if ($Phone) { $env:TG_PHONE = $Phone }
 
 # Quick sanity
 if (-not (Test-Path "packages\tg_engine\src\tg_engine\poc_scan.py")) { throw "Missing poc_scan.py" }
-if (-not (Test-Path "scripts\make_risk_report_ps5.ps1")) { throw "Missing scripts\make_risk_report_ps5.ps1" }
+if (Test-Path "scripts\make_risk_report_ps5.ps1") {
+  $riskScript = ".\scripts\make_risk_report_ps5.ps1"
+} elseif (Test-Path "scripts\make_risk_report.ps1") {
+  $riskScript = ".\scripts\make_risk_report.ps1"
+} else {
+  throw "Missing risk report script (make_risk_report_ps5.ps1 or make_risk_report.ps1)"
+}
 
 Write-Host "== Compile ==" -ForegroundColor Cyan
 python -m py_compile "packages\tg_engine\src\tg_engine\poc_scan.py"
@@ -27,7 +33,7 @@ python -m tg_engine.poc_scan
 if (-not (Test-Path ".\out\scan_report.json")) { throw "scan_report.json missing after run" }
 
 Write-Host "== Risk report ==" -ForegroundColor Cyan
-.\scripts\make_risk_report_ps5.ps1 -InPath ".\out\scan_report.json" -OutPath ".\out\risk_report.csv"
+& $riskScript -InPath ".\out\scan_report.json" -OutPath ".\out\risk_report.csv"
 
 Write-Host "== Top results ==" -ForegroundColor Cyan
 Import-Csv .\out\risk_report.csv |
