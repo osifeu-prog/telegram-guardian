@@ -16,3 +16,10 @@ build/
 .DS_Store
 Thumbs.db
 STATE.md
+# backups / investor outputs
+backups/
+*.bundle
+*.zip
+*.excel.csv
+out/*.md
+out/INVESTOR_STATUS*.md
