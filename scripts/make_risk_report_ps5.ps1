@@ -37,7 +37,7 @@ function Fix-Mojibake([string]$s) {
       if ($ch -eq [char]0xFFFD) { $bad += 8 }   # 
       elseif ($ch -eq '?')      { $bad += 1 }
     }
-    $bad += ([regex]::Matches($x, "Ã|Â|â|×|").Count * 2)
+    $bad += ([regex]::Matches($x, "أƒ|أ‚|أ¢|أ—|").Count * 2)
     return $bad
   }
 
@@ -81,12 +81,30 @@ $safeWords = @("family","work","dev","engineering","admin","team","support","fri
 $highUnread = 200
 $veryHighUnread = 800
 
-$rows = foreach ($d in $report.dialogs) {
+# --- Ignore list (peer_type:peer_id) ---
+$ignorePeers = @{}   # key -> reason
+$ignoreFileCandidates = @(
+  (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "out\ignore_peers.txt"),
+  (Join-Path (Resolve-Path "$PSScriptRoot\..").Path "out\ignore_peers.local.txt")
+)
+
+foreach ($f in $ignoreFileCandidates) {
+  if (Test-Path $f) {
+    foreach ($line in (Get-Content $f -ErrorAction Stop)) {
+      $x = ($line -replace '#.*
   $rawTitle = [string]$d.title
   $title    = Fix-Mojibake $rawTitle
   if ($null -eq $title) { $title = "" }
   $titleNorm = $title.ToLowerInvariant()
 
+  $peerKey = ([string]$d.peer_type + ":" + [string]$d.peer_id)
+  $ignored = $false
+  $ignoredReason = ""
+  if ($ignorePeers.ContainsKey($peerKey)) {
+    $ignored = $true
+    $ignoredReason = $ignorePeers[$peerKey]
+    if ([string]::IsNullOrWhiteSpace($ignoredReason)) { $ignoredReason = "ignored by list" }
+  }
   $hit = @()
   foreach ($w in $riskWords) {
     if ($titleNorm -match [regex]::Escape($w.ToLowerInvariant())) { $hit += $w }
@@ -111,6 +129,11 @@ $rows = foreach ($d in $report.dialogs) {
   elseif ($unread -ge 50)          { $score += 1 }
 
   $score = [math]::Max(0, $score - [math]::Min(3, ($safeHit | Select-Object -Unique | Measure-Object).Count))
+  if ($ignored) {
+    $score = 0
+    $hit = @()
+    $safeHit = @()
+  }
 
   $riskLevel = "MIN"
   if ($score -ge 12) { $riskLevel = "HIGH" }
@@ -118,7 +141,102 @@ $rows = foreach ($d in $report.dialogs) {
   elseif ($score -ge 3) { $riskLevel = "LOW" }
 
   [pscustomobject]@{
-    risk_level   = $riskLevel
+    ignored      = [bool]$ignored
+    ignored_reason = [string]$ignoredReason
+risk_level   = $riskLevel
+    risk_score   = $score
+    peer_type    = $d.peer_type
+    peer_id      = $d.peer_id
+    title        = $title
+    unread_count = $unread
+    is_group     = [bool]$d.is_group
+    is_channel   = [bool]$d.is_channel
+    is_user      = [bool]$d.is_user
+    risk_hits    = (($hit | Select-Object -Unique) -join ";")
+    safe_hits    = (($safeHit | Select-Object -Unique) -join ";")
+  }
+}
+
+$rows |
+  Sort-Object -Property `
+    @{Expression="risk_score"; Descending=$true}, `
+    @{Expression="unread_count"; Descending=$true} |
+  Export-Csv $outFull -NoTypeInformation -Encoding UTF8
+
+if (-not (Test-Path $outFull)) { throw "Export failed; file not created: $outFull" }
+Write-Host "Saved: $outFull"
+
+# Excel-friendly copy (UTF8 BOM) in SAME folder
+$excelOut = [IO.Path]::ChangeExtension($outFull, ".excel.csv")
+$csv = Get-Content $outFull -Raw
+[IO.File]::WriteAllText($excelOut, $csv, (New-Object Text.UTF8Encoding($true)))
+Write-Host "Saved (Excel): $excelOut"
+,'').Trim()
+      if ([string]::IsNullOrWhiteSpace($x)) { continue }
+      # allow: "channel:123 reason words..." or just "channel:123"
+      $parts = $x -split '\s+', 2
+      $key = $parts[0].Trim()
+      $reason = $null
+      if ($parts.Count -ge 2) { $reason = $parts[1].Trim() }
+      if (-not $ignorePeers.ContainsKey($key)) { $ignorePeers[$key] = $reason }
+    }
+    break
+  }
+}
+
+$rows = foreach ($d in $report.dialogs) {
+  $rawTitle = [string]$d.title
+  $title    = Fix-Mojibake $rawTitle
+  if ($null -eq $title) { $title = "" }
+  $titleNorm = $title.ToLowerInvariant()
+
+  $peerKey = ([string]$d.peer_type + ":" + [string]$d.peer_id)
+  $ignored = $false
+  $ignoredReason = ""
+  if ($ignorePeers.ContainsKey($peerKey)) {
+    $ignored = $true
+    $ignoredReason = $ignorePeers[$peerKey]
+    if ([string]::IsNullOrWhiteSpace($ignoredReason)) { $ignoredReason = "ignored by list" }
+  }
+  $hit = @()
+  foreach ($w in $riskWords) {
+    if ($titleNorm -match [regex]::Escape($w.ToLowerInvariant())) { $hit += $w }
+  }
+
+  $safeHit = @()
+  foreach ($w in $safeWords) {
+    if ($titleNorm -match [regex]::Escape($w.ToLowerInvariant())) { $safeHit += $w }
+  }
+
+  $unread = 0
+  try { $unread = [int]$d.unread_count } catch { $unread = 0 }
+
+  $score = 0
+  if ($d.is_channel -and -not $d.is_group) { $score += 2 }
+  if ($d.is_group) { $score += 1 }
+
+  $score += [math]::Min(10, ($hit | Select-Object -Unique | Measure-Object).Count)
+
+  if ($unread -ge $veryHighUnread) { $score += 5 }
+  elseif ($unread -ge $highUnread) { $score += 3 }
+  elseif ($unread -ge 50)          { $score += 1 }
+
+  $score = [math]::Max(0, $score - [math]::Min(3, ($safeHit | Select-Object -Unique | Measure-Object).Count))
+  if ($ignored) {
+    $score = 0
+    $hit = @()
+    $safeHit = @()
+  }
+
+  $riskLevel = "MIN"
+  if ($score -ge 12) { $riskLevel = "HIGH" }
+  elseif ($score -ge 7) { $riskLevel = "MED" }
+  elseif ($score -ge 3) { $riskLevel = "LOW" }
+
+  [pscustomobject]@{
+    ignored      = [bool]$ignored
+    ignored_reason = [string]$ignoredReason
+risk_level   = $riskLevel
     risk_score   = $score
     peer_type    = $d.peer_type
     peer_id      = $d.peer_id
