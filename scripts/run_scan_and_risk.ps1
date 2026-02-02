@@ -37,7 +37,10 @@ if (-not (Test-Path ".\out\scan_report.json")) { throw "scan_report.json missing
 Write-Host "== Risk report ==" -ForegroundColor Cyan
 
 Write-Host "== Parse risk script ==" -ForegroundColor Cyan
-powershell -NoProfile -ExecutionPolicy Bypass -Command "param([string]`$p) [ScriptBlock]::Create((Get-Content -Raw -LiteralPath `$p)) | Out-Null" -Args (Resolve-Path $riskScript).Path
+if (-not $riskScript) { throw "riskScript not resolved" }
+$rp = (Resolve-Path $riskScript).Path
+powershell -NoProfile -ExecutionPolicy Bypass -Command `
+  "[ScriptBlock]::Create((Get-Content -Raw -LiteralPath '$rp')) | Out-Null"
 
 & $riskScript -InPath ".\out\scan_report.json" -OutPath ".\out\risk_report.csv"
 
