@@ -1,71 +1,41 @@
-param(
-  [switch]$StrictCRLF
-)
-
+param([switch]$StrictCRLF)
 $ErrorActionPreference="Stop"
 
-function ShouldSkip([string]$path) {
-  $p = $path.ToLowerInvariant()
-
-  if ($p -like "*\.git\*") { return $true }
-  if ($p -like "*\.venv\*") { return $true }
-  if ($p -like "*\out\*") { return $true }
-  if ($p -like "*\node_modules\*") { return $true }
-  if ($p -like "*\dist\*") { return $true }
-  if ($p -like "*\build\*") { return $true }
-  if ($p -like "*\__pycache__\*") { return $true }
-
-  return $false
+function Get-StagedFiles {
+  $raw = git diff --cached --name-only --diff-filter=ACMRD
+  if (-not $raw) { @() } else { $raw | ForEach-Object { $_.Trim() } | Where-Object { $_ } }
 }
 
-$includeExt = @("*.py","*.ps1","*.md","*.txt","*.yml","*.yaml","*.json")
+function ShouldCheck([string]$rel) {
+  $p = $rel.ToLowerInvariant()
+  if ($p -like ".venv/*" -or $p -like "out/*" -or $p -like "logs/*" -or $p -like "node_modules/*" -or
+      $p -like "dist/*" -or $p -like "build/*" -or $p -like "__pycache__/*") { return $false }
 
-$files = Get-ChildItem -Recurse -File -Include $includeExt |
-  Where-Object { -not (ShouldSkip $_.FullName) }
+  return (
+    $p -like "*.py" -or $p -like "*.ps1" -or $p -like "*.md" -or $p -like "*.txt" -or
+    $p -like "*.yml" -or $p -like "*.yaml" -or $p -like "*.json" -or
+    $p -eq ".editorconfig" -or $p -eq ".gitattributes"
+  )
+}
 
-$badBom = @()
-$badConflict = @()
-$badCrlf = @()
+$badBom=@(); $badCrlf=@(); $badConflict=@()
 
-foreach ($f in $files) {
-  $p = $f.FullName
-  $bytes = [IO.File]::ReadAllBytes($p)
+$staged = Get-StagedFiles | Where-Object { ShouldCheck $_ }
 
-  # UTF-8 BOM
-  if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
-    $badBom += $p
-  }
+foreach ($rel in $staged) {
+  if (-not (Test-Path -LiteralPath $rel)) { continue }
+
+  $bytes = [IO.File]::ReadAllBytes((Resolve-Path -LiteralPath $rel).Path)
+  if ($bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) { $badBom += $rel }
 
   $text = [Text.Encoding]::UTF8.GetString($bytes)
-
-  # REAL git conflict markers ONLY (start-of-line)
-  if ($text -match '(?m)^(<<<<<<<|=======|>>>>>>>)') {
-    $badConflict += $p
-  }
-
-  if ($StrictCRLF) {
-    if ($text -match "`r`n") {
-      $badCrlf += $p
-    }
-  }
+  if ($text -match '(?m)^(<<<<<<<|=======|>>>>>>>)') { $badConflict += $rel }
+  if ($StrictCRLF -and ($text -match "`r`n")) { $badCrlf += $rel }
 }
 
-if ($badConflict.Count -gt 0) {
-  Write-Host "`nCONFLICT markers found:" -ForegroundColor Red
-  $badConflict | Sort-Object -Unique | ForEach-Object { Write-Host "CONFLICT: $_" -ForegroundColor Red }
-  throw "Guardrails failed: conflict markers exist"
-}
-
-if ($badBom.Count -gt 0) {
-  Write-Host "`nBOM files detected (strip required):" -ForegroundColor Yellow
-  $badBom | Sort-Object -Unique | ForEach-Object { Write-Host "BOM: $_" -ForegroundColor Yellow }
-  throw "Guardrails failed: BOM detected"
-}
-
-if ($StrictCRLF -and $badCrlf.Count -gt 0) {
-  Write-Host "`nCRLF files detected (LF required):" -ForegroundColor Yellow
-  $badCrlf | Sort-Object -Unique | ForEach-Object { Write-Host "CRLF: $_" -ForegroundColor Yellow }
-  throw "Guardrails failed: CRLF detected"
-}
+if ($badConflict.Count) { Write-Host "`nCONFLICT:" -ForegroundColor Red; $badConflict | Sort -Unique | % { Write-Host "CONFLICT: $_" -ForegroundColor Red }; exit 1 }
+if ($badBom.Count)      { Write-Host "`nBOM:"      -ForegroundColor Yellow; $badBom      | Sort -Unique | % { Write-Host "BOM: $_"      -ForegroundColor Yellow }; exit 1 }
+if ($StrictCRLF -and $badCrlf.Count) { Write-Host "`nCRLF:" -ForegroundColor Yellow; $badCrlf | Sort -Unique | % { Write-Host "CRLF: $_" -ForegroundColor Yellow }; exit 1 }
 
 Write-Host "Guardrails OK." -ForegroundColor Green
+exit 0
