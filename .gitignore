@@ -1,4 +1,4 @@
-﻿# python
+# python
 .venv/
 __pycache__/
 *.pyc
@@ -15,3 +15,4 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+STATE.md
