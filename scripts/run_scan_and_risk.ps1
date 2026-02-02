@@ -35,6 +35,10 @@ python -m tg_engine.poc_scan
 if (-not (Test-Path ".\out\scan_report.json")) { throw "scan_report.json missing after run" }
 
 Write-Host "== Risk report ==" -ForegroundColor Cyan
+
+Write-Host "== Parse risk script ==" -ForegroundColor Cyan
+powershell -NoProfile -ExecutionPolicy Bypass -Command "param([string]`$p) [ScriptBlock]::Create((Get-Content -Raw -LiteralPath `$p)) | Out-Null" -Args (Resolve-Path $riskScript).Path
+
 & $riskScript -InPath ".\out\scan_report.json" -OutPath ".\out\risk_report.csv"
 
 Write-Host "== Investor report ==" -ForegroundColor Cyan
