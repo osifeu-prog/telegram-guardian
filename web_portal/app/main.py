@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
+
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -29,7 +30,11 @@ def verify_token(token: str, max_age_sec: int = 1800) -> str:
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     with SessionLocal() as db:
-        q = select(Announcement).where(Announcement.is_published == True).order_by(Announcement.published_at.desc())
+        q = (
+            select(Announcement)
+            .where(Announcement.is_published == True)
+            .order_by(Announcement.published_at.desc().nullslast())
+        )
         items = list(db.execute(q).scalars())
     return templates.TemplateResponse("home.html", {"request": request, "items": items})
 
@@ -42,9 +47,6 @@ def login_send(request: Request, email: str = Form(...)):
     email = email.strip().lower()
     token = issue_token(email)
     link = f"{BASE_URL}/auth?token={token}"
-
-    # MVP: כרגע מציגים את הלינק על המסך (לא שולחים מייל).
-    # בשלב הבא נחבר ספק מייל (Resend/Mailgun) ונשלח אותו באמת.
     return templates.TemplateResponse("login.html", {"request": request, "msg": f"Magic link (demo): {link}"})
 
 @app.get("/auth")
@@ -62,5 +64,4 @@ def auth(token: str):
         user.last_login_at = datetime.now(timezone.utc)
         db.commit()
 
-    # MVP: ללא session cookie עדיין. בשלב הבא נוסיף sessions.
     return RedirectResponse(url="/", status_code=303)
