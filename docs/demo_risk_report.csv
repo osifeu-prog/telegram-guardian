@@ -1,0 +1,5 @@
+peer_type,peer_id,title,risk_level,risk_score,unread_count,ignored,ignored_reason,whitelisted,whitelist_reason
+channel,1001,"Synthetic Signals Channel",MED,9,1200,False,,False,
+channel,1002,"Synthetic News Channel",LOW,4,300,True,"ignored by list",False,
+group,2001,"Synthetic Work Group",MIN,1,40,False,,True,"whitelisted by title regex"
+user,3001,"Synthetic Contact",MIN,0,0,False,,False,
