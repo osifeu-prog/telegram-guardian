@@ -5,6 +5,23 @@ param(
 
 $ErrorActionPreference="Stop"
 
+
+# --- ensure policy files exist ---
+$repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
+
+New-Item -ItemType Directory -Force (Join-Path $repoRoot "policy") | Out-Null
+
+$need = @(
+  (Join-Path $repoRoot "policy\ignore_defaults.txt"),
+  (Join-Path $repoRoot "policy\whitelist_defaults.txt"),
+  (Join-Path $repoRoot "policy\ignore.local.txt"),
+  (Join-Path $repoRoot "policy\whitelist.local.txt")
+)
+foreach ($f in $need) {
+  if (-not (Test-Path -LiteralPath $f)) {
+    "# created automatically" | Set-Content -LiteralPath $f -Encoding ascii
+  }
+}
 # 1) Build base risk report
 powershell -NoProfile -ExecutionPolicy Bypass `
   -File "$PSScriptRoot\make_risk_report_ps5.ps1" `
@@ -28,4 +45,5 @@ Import-Csv $OutCsv |
 
 # 2.5) Apply whitelist after ignore (override trusted to MIN)
 powershell -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\apply_whitelist_to_csv.ps1"
+
 
