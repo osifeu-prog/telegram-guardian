@@ -105,7 +105,7 @@ def ready():
         else:
             out["redis"] = False
     except Exception as e:
-        out["ok"] = False
+        # redis is optional -> do not fail readiness
         out["redis"] = False
         out["redis_error"] = str(e)
 
@@ -113,4 +113,5 @@ def ready():
         return Response(content=str(out), status_code=503, media_type="application/json")
     return out
 # --- end ops endpoints ---
+
 
