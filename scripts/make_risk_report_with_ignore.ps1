@@ -25,3 +25,7 @@ Import-Csv $OutCsv |
   Where-Object { $_.ignored -eq "True" } |
   Select-Object peer_type,peer_id,title,ignored_reason,ignored_source |
   Format-Table -AutoSize
+
+# 2.5) Apply whitelist after ignore (override trusted to MIN)
+powershell -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\apply_whitelist_to_csv.ps1"
+
