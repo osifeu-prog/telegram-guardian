@@ -65,3 +65,52 @@ def auth(token: str):
         db.commit()
 
     return RedirectResponse(url="/", status_code=303)
+
+
+# --- ops endpoints (health/ready/live) ---
+from fastapi import Response
+
+@app.get("/health")
+def health():
+    return {"ok": True}
+
+@app.get("/live")
+def live():
+    return {"ok": True}
+
+@app.get("/ready")
+def ready():
+    out = {"ok": True, "db": False, "redis": None}
+
+    # DB check
+    try:
+        from sqlalchemy import text
+        from .db import get_engine
+        with get_engine().connect() as c:
+            c.execute(text("SELECT 1"))
+        out["db"] = True
+    except Exception as e:
+        out["ok"] = False
+        out["db_error"] = str(e)
+
+    # Redis check (optional)
+    try:
+        import os
+        ru = (os.getenv("REDIS_URL") or "").strip()
+        if ru:
+            import redis
+            r = redis.from_url(ru, decode_responses=True)
+            r.ping()
+            out["redis"] = True
+        else:
+            out["redis"] = False
+    except Exception as e:
+        out["ok"] = False
+        out["redis"] = False
+        out["redis_error"] = str(e)
+
+    if not out["ok"]:
+        return Response(content=str(out), status_code=503, media_type="application/json")
+    return out
+# --- end ops endpoints ---
+
