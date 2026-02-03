@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
@@ -115,4 +115,30 @@ def ready():
     return out
 
 # --- end ops endpoints ---
+
+
+
+@app.get("/ops/db")
+def ops_db(token: str):
+    want = (os.getenv("OPS_TOKEN") or "").strip()
+    if not want or token != want:
+        raise HTTPException(status_code=401, detail="unauthorized")
+
+    out = {"ok": True, "db": None, "alembic_version": None}
+
+    try:
+        from sqlalchemy import text
+        from .db import get_engine
+        with get_engine().connect() as c:
+            out["db"] = bool(c.execute(text("SELECT 1")).scalar())
+            # try read alembic version table if exists
+            try:
+                out["alembic_version"] = c.execute(text("SELECT version_num FROM alembic_version")).scalar()
+            except Exception as _:
+                out["alembic_version"] = None
+    except Exception as e:
+        out["ok"] = False
+        out["error"] = str(e)
+
+    return out
 
