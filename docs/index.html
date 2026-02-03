@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
@@ -17,11 +17,21 @@
   </style>
 </head>
 <body>
-  <h1>Telegram Guardian  Risk Hygiene (Local-First)</h1>
+  <h1>Telegram Guardian  Risk Hygiene</h1>
   <p class="muted">
-    Local-only tool that scans dialogs (read-only) and generates a risk hygiene report.
-    Public demo uses <b>synthetic data</b>.
+    Local-only tool that scans your Telegram dialogs (read-only) and generates a risk hygiene report.
+    This public page uses <b>synthetic data</b>.
   </p>
+
+  <div class="card">
+    <h2>What it does</h2>
+    <ul>
+      <li>Scan dialogs locally  <code>out/scan_report.json</code></li>
+      <li>Compute risk score per dialog  <code>out/risk_report.csv</code></li>
+      <li>Apply policy layers: Ignore + Whitelist</li>
+      <li>Excel-friendly output  <code>out/risk_report.excel.csv</code></li>
+    </ul>
+  </div>
 
   <div class="card">
     <h2>Run (local)</h2>
@@ -40,6 +50,7 @@ async function loadCsv() {
   const text = await res.text();
   const lines = text.trim().split(/\r?\n/);
   const headers = lines[0].split(',');
+
   const rows = lines.slice(1).map(l => {
     const parts = [];
     let cur="", inq=false;
