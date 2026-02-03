@@ -1,4 +1,4 @@
-# python
+﻿# python
 .venv/
 __pycache__/
 *.pyc
@@ -23,3 +23,5 @@ backups/
 *.excel.csv
 out/*.md
 out/INVESTOR_STATUS*.md
+policy/*.local.txt
+

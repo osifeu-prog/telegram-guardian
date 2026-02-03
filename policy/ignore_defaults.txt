@@ -1,0 +1,9 @@
+# Ignore rules (committed defaults)
+# keys:
+# peer_type:peer_id   reason
+# peer_id             reason
+# title_regex:<rx>    reason
+#
+# Examples:
+# channel:1675362376  news - ignore
+# title_regex:(?i)\bnews\b  ignore news titles
