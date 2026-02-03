@@ -67,8 +67,10 @@ def auth(token: str):
     return RedirectResponse(url="/", status_code=303)
 
 
+
+
+
 # --- ops endpoints (health/ready/live) ---
-from fastapi import Response
 
 @app.get("/health")
 def health():
@@ -82,7 +84,7 @@ def live():
 def ready():
     out = {"ok": True, "db": False, "redis": None}
 
-    # DB check
+    # DB is required for readiness
     try:
         from sqlalchemy import text
         from .db import get_engine
@@ -93,7 +95,7 @@ def ready():
         out["ok"] = False
         out["db_error"] = str(e)
 
-    # Redis check (optional)
+    # Redis is optional (should not fail readiness)
     try:
         import os
         ru = (os.getenv("REDIS_URL") or "").strip()
@@ -105,13 +107,12 @@ def ready():
         else:
             out["redis"] = False
     except Exception as e:
-        # redis is optional -> do not fail readiness
         out["redis"] = False
         out["redis_error"] = str(e)
 
     if not out["ok"]:
         return Response(content=str(out), status_code=503, media_type="application/json")
     return out
-# --- end ops endpoints ---
 
+# --- end ops endpoints ---
 
