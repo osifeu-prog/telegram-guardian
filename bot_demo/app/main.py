@@ -13,39 +13,39 @@ log = logging.getLogger("bot_demo")
 
 START_TEXT = """<b>Telegram Guardian  Risk Hygiene (Local-First)</b>
 
-<b>מה זה?</b>
-כלי לוקאלי בלבד שסורק דיאלוגים ב-Telegram (Read-Only) ומפיק דוח Risk Hygiene.
+<b>×‍×” ×–×”?</b>
+×›×œ×™ ×œ×•×§×گ×œ×™ ×‘×œ×‘×“ ×©×،×•×¨×§ ×“×™×گ×œ×•×’×™×‌ ×‘-Telegram (Read-Only) ×•×‍×¤×™×§ ×“×•×— Risk Hygiene.
 
-<b>פרטיות</b>
- רץ על המחשב שלך
- אין העלאה של צאטים/הודעות לשרת
- הדמו הציבורי הוא נתונים סינתטיים בלבד
+<b>×¤×¨×ک×™×•×ھ</b>
+ ×¨×¥ ×¢×œ ×”×‍×—×©×‘ ×©×œ×ڑ
+ ×گ×™×ں ×”×¢×œ×گ×” ×©×œ ×¦×گ×ک×™×‌/×”×•×“×¢×•×ھ ×œ×©×¨×ھ
+ ×”×“×‍×• ×”×¦×™×‘×•×¨×™ ×”×•×گ × ×ھ×•× ×™×‌ ×،×™× ×ھ×ک×™×™×‌ ×‘×œ×‘×“
 
-<b>קישורים</b>
- דמו: https://osifeu-prog.github.io/telegram-guardian/
- קוד: https://github.com/osifeu-prog/telegram-guardian
+<b>×§×™×©×•×¨×™×‌</b>
+ ×“×‍×•: https://osifeu-prog.github.io/telegram-guardian/
+ ×§×•×“: https://github.com/osifeu-prog/telegram-guardian
 
-<b>פקודות</b>
-/howto   התקנה והרצה (Windows)
-/privacy מדיניות פרטיות קצרה
-/demo    קישור לדמו
+<b>×¤×§×•×“×•×ھ</b>
+/howto   ×”×ھ×§× ×” ×•×”×¨×¦×” (Windows)
+/privacy ×‍×“×™× ×™×•×ھ ×¤×¨×ک×™×•×ھ ×§×¦×¨×”
+/demo    ×§×™×©×•×¨ ×œ×“×‍×•
 """
 
-HOWTO_TEXT = """<b>התקנה והרצה (Windows)</b>
-1) שכפל את הריפו
-2) צור venv והתקן requirements
-3) הגדר TELEGRAM_BOT_TOKEN
-4) הרץ את הבוט (polling)
+HOWTO_TEXT = """<b>×”×ھ×§× ×” ×•×”×¨×¦×” (Windows)</b>
+1) ×©×›×¤×œ ×گ×ھ ×”×¨×™×¤×•
+2) ×¦×•×¨ venv ×•×”×ھ×§×ں requirements
+3) ×”×’×“×¨ TELEGRAM_BOT_TOKEN
+4) ×”×¨×¥ ×گ×ھ ×”×‘×•×ک (polling)
 
-רמז: זה דמו. אין פה webhook.
+×¨×‍×–: ×–×” ×“×‍×•. ×گ×™×ں ×¤×” webhook.
 """
 
-PRIVACY_TEXT = """<b>פרטיות  TL;DR</b>
-הפרויקט מתוכנן להיות Local-First.
-הדמו/מסכים לא אמורים להכיל דאטה אמיתי של Telegram.
+PRIVACY_TEXT = """<b>×¤×¨×ک×™×•×ھ  TL;DR</b>
+×”×¤×¨×•×™×§×ک ×‍×ھ×•×›× ×ں ×œ×”×™×•×ھ Local-First.
+×”×“×‍×•/×‍×،×›×™×‌ ×œ×گ ×گ×‍×•×¨×™×‌ ×œ×”×›×™×œ ×“×گ×ک×” ×گ×‍×™×ھ×™ ×©×œ Telegram.
 """
 
-DEMO_TEXT = "דמו: https://osifeu-prog.github.io/telegram-guardian/"
+DEMO_TEXT = "×“×‍×•: https://osifeu-prog.github.io/telegram-guardian/"
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.message:
