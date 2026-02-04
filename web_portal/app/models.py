@@ -1,5 +1,6 @@
-from sqlalchemy import Integer, String, Boolean, DateTime, Text
 from __future__ import annotations
+
+from sqlalchemy import Integer, String, Boolean, DateTime, Text
 
 from datetime import datetime, timezone
 from sqlalchemy.orm import Mapped, mapped_column
