@@ -25,3 +25,7 @@ out/*.md
 out/INVESTOR_STATUS*.md
 policy/*.local.txt
 
+
+_hdr.txt
+_openapi.json
+
