@@ -14,6 +14,7 @@ from .core.ops_auth import require_ops_token
 from .db import SessionLocal, get_engine
 from .models import Announcement, User
 from .tg_webhook import router as tg_router
+from .api_airdrop import router as api_router
 
 APP_SECRET = os.environ.get("APP_SECRET", "dev-only-change-me")
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:8000")
@@ -24,6 +25,7 @@ templates = Jinja2Templates(directory=os.path.join(os.path.dirname(__file__), "t
 app = FastAPI()
 
 app.include_router(tg_router)
+app.include_router(api_router)
 
 
 @app.middleware("http")
