@@ -24,7 +24,6 @@ async def tg_webhook(
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="unauthorized")
 
     payload = await request.json()
-
     try:
         await process_update(payload)
     except Exception as e:
