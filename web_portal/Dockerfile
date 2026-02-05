@@ -1,4 +1,4 @@
-# WEB_PORTAL_DOCKERFILE_STABLE_V3 (Root Directory = web_portal)
+# WEB_PORTAL_DOCKERFILE_STABLE_V4 (Root Directory = web_portal)
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -11,4 +11,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["sh","-c","echo BOOT_OK && (python -m alembic -c alembic.ini upgrade head || echo 'WARN: alembic upgrade failed (continuing)') && exec uvicorn app.main:app --host 0.0.0.0 --port "]
+CMD ["sh","-c","echo BOOT_OK && (python -m alembic -c alembic.ini upgrade head || echo 'WARN: alembic upgrade failed (continuing)') && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]

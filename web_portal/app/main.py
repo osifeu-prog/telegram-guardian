@@ -1,28 +1,39 @@
-from __future__ import annotations
-
+import os
+import sys
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 
 from .tg_webhook import router as tg_router
 from .tg_bot import init_bot, shutdown_bot
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     print("APP: lifespan startup", flush=True)
-    await init_bot()
+    try:
+        await init_bot()
+    except Exception as e:
+        print("APP: init_bot error: " + repr(e), flush=True)
     yield
     print("APP: lifespan shutdown", flush=True)
-    await shutdown_bot()
+    try:
+        await shutdown_bot()
+    except Exception as e:
+        print("APP: shutdown_bot error: " + repr(e), flush=True)
+
 
 app = FastAPI(title="telegram-guardian", lifespan=lifespan)
 app.include_router(tg_router)
 
+
 @app.get("/health")
 def health():
-    return {"ok": True, "TG_SIGNATURE": "TG_SIGNATURE__7efb7f4"}
+    return {"ok": True, "TG_SIGNATURE": "TG_SIGNATURE__ed99ea6"}
+
+
 @app.get("/debug/runtime")
 def debug_runtime():
-    import os, sys
     return {
         "cwd": os.getcwd(),
         "py": sys.version,
