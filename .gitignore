@@ -29,3 +29,9 @@ policy/*.local.txt
 _hdr.txt
 _openapi.json
 
+_patch_main.py
+_railway_vars_backup.json
+miniapp/
+app/
+web_portal/alembic/script.py.mako
+web_portal/app/core/
