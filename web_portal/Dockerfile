@@ -1,4 +1,4 @@
-# WEB_PORTAL_DOCKERFILE_STABLE_V2 (Root Directory = web_portal)
+# WEB_PORTAL_DOCKERFILE_STABLE_V3 (Root Directory = web_portal)
 FROM python:3.11-slim
 
 WORKDIR /app
