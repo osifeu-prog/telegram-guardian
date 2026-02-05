@@ -1,4 +1,3 @@
-# TG_DEPLOY_DOCKERFILE = WEB_PORTAL_V1
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -6,8 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# bring the portal code (includes app + alembic)
 COPY web_portal ./web_portal
 
-# Railway expects listening on $PORT
-CMD ["sh","-c","python -m alembic -c web_portal/alembic.ini upgrade head && uvicorn web_portal.app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
+# Don't crash the whole service if migrations fail momentarily.
+CMD ["sh","-c","if [ -f web_portal/alembic.ini ]; then alembic -c web_portal/alembic.ini upgrade head || echo 'WARN: alembic upgrade failed (continuing)'; else echo 'WARN: missing web_portal/alembic.ini'; fi; uvicorn web_portal.app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
