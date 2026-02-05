@@ -34,4 +34,6 @@ _railway_vars_backup.json
 miniapp/
 app/
 web_portal/alembic/script.py.mako
+
 web_portal/app/core/
+
