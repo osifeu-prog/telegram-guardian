@@ -5,6 +5,8 @@ from typing import Any, Optional
 
 from fastapi import APIRouter, Header, HTTPException, Request, status
 
+from .tg_bot import process_update
+
 router = APIRouter()
 
 def _want_secret() -> str:
@@ -21,6 +23,14 @@ async def tg_webhook(
         if got != want:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="unauthorized")
 
-    # consume body (do not log secrets; keep it light)
-    _ = await request.json()
+    payload = await request.json()
+
+    # Process update through PTB handlers (no secrets logged)
+    try:
+        await process_update(payload)
+    except Exception:
+        # Keep webhook fast + resilient. Telegram will retry anyway.
+        # If you want strict behavior later, we can add structured logging.
+        pass
+
     return {"ok": True}

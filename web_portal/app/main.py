@@ -14,6 +14,7 @@ from .core.ops_auth import require_ops_token
 from .db import SessionLocal, get_engine
 from .models import Announcement, User
 from .tg_webhook import router as tg_router
+from .tg_bot import init_bot, shutdown_bot
 from .api_airdrop import router as api_router
 
 APP_SECRET = os.environ.get("APP_SECRET", "dev-only-change-me")
@@ -27,7 +28,14 @@ app = FastAPI()
 app.include_router(tg_router)
 app.include_router(api_router)
 
+@app.on_event("startup")
+async def _startup() -> None:
+    # Initialize telegram bot core (only if TELEGRAM_BOT_TOKEN is set)
+    await init_bot()
 
+@app.on_event("shutdown")
+async def _shutdown() -> None:
+    await shutdown_bot()
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     resp = await call_next(request)
