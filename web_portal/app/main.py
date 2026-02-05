@@ -19,4 +19,4 @@ app.include_router(tg_router)
 
 @app.get("/health")
 def health():
-    return {"ok": True}
+    return {"ok": True, "TG_SIGNATURE": "TG_SIGNATURE__7efb7f4"}
