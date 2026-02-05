@@ -13,7 +13,6 @@ def _token() -> str:
     return (os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()
 
 def _log(msg: str) -> None:
-    # stdout -> Railway logs
     print(msg, flush=True)
 
 def _admin_id() -> Optional[int]:
@@ -112,6 +111,7 @@ async def cmd_admin_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     db_ok, db_err, alembic_v = _db_ready()
     r_ok, r_err = _redis_ready()
+
     lines = [
         "🔐 admin_status",
         f"DB_OK={db_ok}",
