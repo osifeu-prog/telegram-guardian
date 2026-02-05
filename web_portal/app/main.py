@@ -41,3 +41,14 @@ def debug_runtime():
         "env_has_token": bool((os.getenv("TELEGRAM_BOT_TOKEN") or "").strip()),
         "env_has_secret": bool((os.getenv("TELEGRAM_WEBHOOK_SECRET") or "").strip()),
     }
+@app.get("/__whoami")
+def __whoami():
+    import os, sys
+    return {
+        "module": __name__,
+        "file": __file__,
+        "cwd": os.getcwd(),
+        "python": sys.version,
+        "build_signature": os.getenv("BUILD_SIGNATURE", ""),
+        "routes": [getattr(r, "path", None) for r in app.router.routes],
+    }
