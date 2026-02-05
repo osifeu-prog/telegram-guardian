@@ -32,7 +32,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     me = update.effective_user
     uid = me.id if me else None
     txt = (
-        "✅ telegram-guardian webhook bot is alive.\n"
+        "âœ… telegram-guardian webhook bot is alive.\n"
         f"your_id={uid}\n"
         "Commands:\n"
         "/status  (basic readiness)\n"
@@ -84,7 +84,7 @@ async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     r_ok, r_err = _redis_ready()
 
     now = datetime.now(timezone.utc).isoformat()
-    lines = [f"🟢 status @ {now}", f"DB: {db_ok}"]
+    lines = [f"ًںں¢ status @ {now}", f"DB: {db_ok}"]
     if alembic_v:
         lines.append(f"Alembic: {alembic_v}")
     if db_err:
@@ -111,7 +111,7 @@ async def cmd_admin_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     db_ok, db_err, alembic_v = _db_ready()
     r_ok, r_err = _redis_ready()
     lines = [
-        "🔐 admin_status",
+        "ًں”گ admin_status",
         f"DB_OK={db_ok}",
         f"ALEMBIC={alembic_v}",
         f"DB_ERR={db_err}",
@@ -141,18 +141,18 @@ async def init_bot() -> None:
     app = get_bot_app()
     if app is None:
         return
-    # Initialize PTB internals (no polling, no webhook start - FastAPI receives HTTP)
+    # Initialize PTB internals for webhook processing (no polling/getUpdates)
     await app.initialize()
-
+    await app.start()
 async def shutdown_bot() -> None:
     global _app
     if _app is None:
         return
     try:
+        await _app.stop()
         await _app.shutdown()
     finally:
         _app = None
-
 async def process_update(payload: dict[str, Any]) -> None:
     app = get_bot_app()
     if app is None:
