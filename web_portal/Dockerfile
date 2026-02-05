@@ -11,3 +11,5 @@ COPY . .
 
 # Run migrations then start API (Railway provides $PORT)
 CMD ["sh","-c","python -m alembic -c alembic.ini upgrade head && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
+# deploy-bump 2026-02-05T20:07:51
+
