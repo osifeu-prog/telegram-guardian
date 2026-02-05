@@ -28,9 +28,6 @@ async def tg_webhook(
     # Process update through PTB handlers (no secrets logged)
     try:
         await process_update(payload)
-    except Exception:
-        # Keep webhook fast + resilient. Telegram will retry anyway.
-        # If you want strict behavior later, we can add structured logging.
-        pass
+    except Exception as e:`n        print("WEBHOOK_PROCESS_ERROR:", repr(e))
 
     return {"ok": True}
