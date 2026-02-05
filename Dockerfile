@@ -1,3 +1,4 @@
+# TG_DEPLOY_DOCKERFILE = WEB_PORTAL_V1
 FROM python:3.11-slim
 
 WORKDIR /app
