@@ -1,10 +1,10 @@
-# WEB_PORTAL_DOCKERFILE_STABLE_V1 (Root Directory = web_portal)
+# WEB_PORTAL_DOCKERFILE_STABLE_V2 (Root Directory = web_portal)
 FROM python:3.11-slim
 
 WORKDIR /app
 
-ENV PYTHONDONTWRITEBYTECODE=1 
-    PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
