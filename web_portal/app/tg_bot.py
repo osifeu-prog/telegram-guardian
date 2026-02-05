@@ -28,27 +28,33 @@ def _is_admin(user_id: Optional[int]) -> bool:
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not update.effective_chat:
+        print("CMD_START: no effective_chat")
         return
     me = update.effective_user
     uid = me.id if me else None
     txt = (
-        "âœ… telegram-guardian webhook bot is alive.\n"
+        "telegram-guardian webhook bot is alive.\n"
         f"your_id={uid}\n"
         "Commands:\n"
-        "/status  (basic readiness)\n"
-        "/whoami  (echo identity)\n"
-        "/admin_status  (admin only, requires ADMIN_TELEGRAM_ID env)\n"
+        "/status\n"
+        "/whoami\n"
+        "/admin_status\n"
     )
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=txt)
-
-async def cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    try:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=txt)
+        print(f"CMD_START: replied chat_id={update.effective_chat.id} user_id={uid}")
+    except Exception as e:
+        print("CMD_START_SEND_ERROR:", repr(e))async def cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not update.effective_chat:
+        print("CMD_WHOAMI: no effective_chat")
         return
     u = update.effective_user
     txt = f"user_id={getattr(u,'id',None)} username={getattr(u,'username',None)} name={getattr(u,'first_name',None)}"
-    await context.bot.send_message(chat_id=update.effective_chat.id, text=txt)
-
-def _db_ready() -> tuple[bool, Optional[str], Optional[str]]:
+    try:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text=txt)
+        print(f"CMD_WHOAMI: replied chat_id={update.effective_chat.id}")
+    except Exception as e:
+        print("CMD_WHOAMI_SEND_ERROR:", repr(e))def _db_ready() -> tuple[bool, Optional[str], Optional[str]]:
     # returns: ok, error, alembic_version
     try:
         from sqlalchemy import text
@@ -84,7 +90,7 @@ async def cmd_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     r_ok, r_err = _redis_ready()
 
     now = datetime.now(timezone.utc).isoformat()
-    lines = [f"ًںں¢ status @ {now}", f"DB: {db_ok}"]
+    lines = [f"ظ‹ع؛ع؛آ¢ status @ {now}", f"DB: {db_ok}"]
     if alembic_v:
         lines.append(f"Alembic: {alembic_v}")
     if db_err:
@@ -111,7 +117,7 @@ async def cmd_admin_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     db_ok, db_err, alembic_v = _db_ready()
     r_ok, r_err = _redis_ready()
     lines = [
-        "ًں”گ admin_status",
+        "ظ‹ع؛â€‌ع¯ admin_status",
         f"DB_OK={db_ok}",
         f"ALEMBIC={alembic_v}",
         f"DB_ERR={db_err}",
@@ -138,7 +144,8 @@ def get_bot_app() -> Optional[Application]:
     return _app
 
 async def init_bot() -> None:
-    app = get_bot_app()
+    tok = _token()
+    print(f"BOT_INIT: token_set={bool(tok)}")app = get_bot_app()
     if app is None:
         return
     # Initialize PTB internals for webhook processing (no polling/getUpdates)
@@ -153,10 +160,18 @@ async def shutdown_bot() -> None:
         await _app.shutdown()
     finally:
         _app = None
-async def process_update(payload: dict[str, Any]) -> None:
-    app = get_bot_app()
+async def process_update(payload: dict[str, Any]) -> None:app = get_bot_app()
     if app is None:
         return
     # Convert dict -> telegram.Update and process via PTB
-    upd = Update.de_json(payload, app.bot)
-    await app.process_update(upd)
+        try:
+        upd = Update.de_json(payload, app.bot)
+    except Exception as e:
+        print("PROCESS_UPDATE_DEJSON_ERROR:", repr(e))
+        return
+
+    try:
+        await app.process_update(upd)
+        print(f"PROCESS_UPDATE_OK: update_id={uid}")
+    except Exception as e:
+        print("PROCESS_UPDATE_HANDLER_ERROR:", repr(e))
