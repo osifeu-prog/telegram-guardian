@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 from fastapi import APIRouter, Header, HTTPException, Request, status
 
-from .tg_bot import process_update, get_bot_app
+from .tg_bot import process_update
 
 router = APIRouter()
 
@@ -18,30 +18,24 @@ async def tg_webhook(
     x_telegram_bot_api_secret_token: Optional[str] = Header(None, alias="X-Telegram-Bot-Api-Secret-Token"),
 ) -> dict[str, Any]:
     want = _want_secret()
-    got = (x_telegram_bot_api_secret_token or "").strip()
 
-    if want and got != want:
-        # do NOT log token
-        print("WEBHOOK_REJECT: secret mismatch; got_present=", bool(got))
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="unauthorized")
+    # minimal header diagnostics (no secrets printed)
+    if want:
+        got = (x_telegram_bot_api_secret_token or "").strip()
+        if got != want:
+            print("WEBHOOK_AUTH_FAIL: secret header mismatch")
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="unauthorized")
 
     payload = await request.json()
-
-    # Minimal safe debug
-    msg = payload.get("message") or payload.get("edited_message") or {}
-    txt = msg.get("text")
-    print("WEBHOOK_ACCEPT:",
-          "secret_present=", bool(got),
-          "keys=", list(payload.keys()),
-          "text=", txt)
-
-    app = get_bot_app()
-    print("BOT_APP_PRESENT=", bool(app))
+    uid = payload.get("update_id")
+    has_msg = "message" in payload
+    has_cbq = "callback_query" in payload
+    print(f"WEBHOOK_OK: update_id={uid} message={has_msg} callback_query={has_cbq}")
 
     try:
         await process_update(payload)
-        print("WEBHOOK_PROCESS_OK")
     except Exception as e:
+        # keep 200 to avoid retries storm, but log the real reason
         print("WEBHOOK_PROCESS_ERROR:", repr(e))
 
     return {"ok": True}
