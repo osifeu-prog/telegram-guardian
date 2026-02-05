@@ -1,4 +1,4 @@
-# WEB_PORTAL_DOCKERFILE_V4 (Root Directory = web_portal)
+# WEB_PORTAL_DOCKERFILE_V5 (Root Directory = web_portal)
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -11,5 +11,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Important: do NOT fail container if alembic fails (otherwise Railway healthcheck never passes)
+# Never fail the container because alembic failed (otherwise Railway healthcheck never passes)
 CMD ["sh","-c","echo BOOT_OK && (python -m alembic -c alembic.ini upgrade head || echo 'WARN: alembic upgrade failed (continuing)') && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
