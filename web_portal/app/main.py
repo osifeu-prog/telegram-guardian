@@ -21,7 +21,15 @@ async def lifespan(app: FastAPI):
         await shutdown_bot()
     except Exception as e:
         print("APP: shutdown_bot error: " + repr(e), flush=True)
-app = FastAPI(title="telegram-guardian", version="tg-guardian-2")
+app = FastAPI(title="telegram-guardian", version="tg-guardian-1")
+
+@app.middleware("http")
+async def _no_cache_openapi(request, call_next):
+    resp = await call_next(request)
+    p = request.url.path
+    if p == "/openapi.json" or p == "/docs" or p == "/redoc":
+        resp.headers["Cache-Control"] = "no-store"
+    return resp
 app.include_router(tg_router)
 
 
@@ -48,5 +56,18 @@ def __whoami():
         "cwd": os.getcwd(),
         "python": sys.version,
         "build_signature": os.getenv("BUILD_SIGNATURE", ""),
+        "routes": [getattr(r, "path", None) for r in app.router.routes],
+    }
+@app.get("/ops/runtime")
+def ops_runtime(_ops: dict = Depends(require_ops_token)):
+    import os, sys
+    return {
+        "ok": True,
+        "app_title": getattr(app, "title", None),
+        "app_version": getattr(app, "version", None),
+        "module": __name__,
+        "file": __file__,
+        "cwd": os.getcwd(),
+        "python": sys.version,
         "routes": [getattr(r, "path", None) for r in app.router.routes],
     }
