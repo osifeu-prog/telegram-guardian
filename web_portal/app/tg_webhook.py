@@ -24,6 +24,12 @@ def _want_secret() -> str:
 
 @router.post("/tg/webhook")
 async def tg_webhook(
+    try:
+        _check_telegram_secret(x_telegram_bot_api_secret_token)
+    except ValueError:
+        print('WEBHOOK: 401 bad secret')
+        raise HTTPException(status_code=401, detail='Unauthorized')
+
     request: Request,
     x_telegram_bot_api_secret_token: Optional[str] = Header(None, alias="X-Telegram-Bot-Api-Secret-Token"),
 ) -> dict[str, Any]:
