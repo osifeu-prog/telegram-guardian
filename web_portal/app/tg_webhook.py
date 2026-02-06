@@ -1,3 +1,13 @@
+# TG_WEBHOOK_SECRET_CHECK_V1
+TELEGRAM_WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", "").strip()
+
+def _check_telegram_secret(x_telegram_bot_api_secret_token: str | None) -> None:
+    # If secret is configured, enforce it. If not configured, allow (dev mode).
+    if TELEGRAM_WEBHOOK_SECRET:
+        if not x_telegram_bot_api_secret_token or x_telegram_bot_api_secret_token.strip() != TELEGRAM_WEBHOOK_SECRET:
+            # do not leak expected secret
+            raise ValueError("bad secret")
+
 from __future__ import annotations
 
 import os
