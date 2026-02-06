@@ -1,3 +1,22 @@
+# TG_PTB_WEBHOOK_ENSURE_V1
+_TG_INIT_LOCK = asyncio.Lock()
+_TG_INIT_DONE = False
+
+async def _tg_ensure_started() -> Application:
+    global _TG_INIT_DONE
+    async with _TG_INIT_LOCK:
+        if _TG_INIT_DONE:
+            return tg_get_app()
+        app = tg_get_app()
+        await app.initialize()
+        await app.start()
+        _TG_INIT_DONE = True
+        print("TG_PTB: ensured initialized+started (webhook)")
+        return app
+
+from app.tg_bot import tg_get_app
+from telegram.ext import Application
+import asyncio
 # TG_WEBHOOK_SECRET_CHECK_V1
 TELEGRAM_WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", "").strip()
 
