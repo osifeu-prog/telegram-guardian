@@ -2,8 +2,7 @@ import os
 import sys
 from contextlib import asynccontextmanager
 
-BUILD_STAMP = "2026-02-06T20:30:16+02:00"
-
+BUILD_STAMP = "2026-02-06T20:46:43+02:00"
 from fastapi import FastAPI
 
 from .tg_webhook import router as tg_router
@@ -24,7 +23,6 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         print("APP: shutdown_bot error: " + repr(e), flush=True)
 app = FastAPI(title="telegram-guardian", version="tg-guardian-1")
-
 @app.middleware("http")
 async def _no_cache_openapi(request, call_next):
     resp = await call_next(request)
@@ -73,3 +71,4 @@ def ops_runtime(_ops: dict = Depends(require_ops_token)):
         "python": sys.version,
         "routes": [getattr(r, "path", None) for r in app.router.routes],
     }
+print(f"TG_GUARDIAN_MAIN_LOADED build={BUILD_STAMP} file={__file__}")
