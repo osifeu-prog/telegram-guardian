@@ -2,7 +2,7 @@ import os
 import sys
 from contextlib import asynccontextmanager
 
-BUILD_STAMP = "2026-02-06T20:52:36+02:00"
+BUILD_STAMP = "2026-02-06T21:17:25+02:00"
 from fastapi import Query, FastAPI
 
 from .tg_webhook import router as tg_router
@@ -61,6 +61,17 @@ def __whoami():
 
 
 print(f"TG_GUARDIAN_MAIN_LOADED build={BUILD_STAMP} file={__file__}")
+@app.get("/healthz")
+def healthz():
+    return {
+        "ok": True,
+        "build_stamp": BUILD_STAMP,
+        "app_title": getattr(app, "title", None),
+        "app_version": getattr(app, "version", None),
+        "file": __file__,
+    }
+
+print(f"TG_GUARDIAN_MAIN_LOADED build={BUILD_STAMP} file={__file__}")
 
 @app.get("/ops/runtime")
 def ops_runtime(token: str = Query(..., description="OPS token")):
@@ -71,9 +82,8 @@ def ops_runtime(token: str = Query(..., description="OPS token")):
         "build_stamp": BUILD_STAMP,
         "app_title": getattr(app, "title", None),
         "app_version": getattr(app, "version", None),
-        "module": __name__,
-        "file": __file__,
         "cwd": os.getcwd(),
+        "file": __file__,
         "python": sys.version,
         "route_count": len(getattr(app.router, "routes", [])),
     }
