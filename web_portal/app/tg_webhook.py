@@ -1,7 +1,18 @@
 # TG_WEBHOOK_SECRET_CHECK_V1
 TELEGRAM_WEBHOOK_SECRET = os.getenv("TELEGRAM_WEBHOOK_SECRET", "").strip()
 
-def _check_telegram_secret(x_telegram_bot_api_secret_token: str | None) -> None:
+
+
+# TG_SECRET_BOOT_V1
+import hashlib
+
+def _secret_fingerprint(s: str) -> str:
+    return hashlib.sha256(s.encode("utf-8")).hexdigest()[:12]
+
+if TELEGRAM_WEBHOOK_SECRET:
+    print("TG_SECRET_BOOT present=1 fp=" + _secret_fingerprint(TELEGRAM_WEBHOOK_SECRET))
+else:
+    print("TG_SECRET_BOOT present=0")def _check_telegram_secret(x_telegram_bot_api_secret_token: str | None) -> None:
     # If secret is configured, enforce it. If not configured, allow (dev mode).
     if TELEGRAM_WEBHOOK_SECRET:
         if not x_telegram_bot_api_secret_token or x_telegram_bot_api_secret_token.strip() != TELEGRAM_WEBHOOK_SECRET:
