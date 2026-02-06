@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import os
 from typing import Optional, Any
-
-from telegram import Update
+try:
+    from telegram import Update
+except Exception:  # pragma: no cover
+    Update = object  # allows server startup even if dependency missing
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 _app: Optional[Application] = None
@@ -18,7 +20,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     _log(f"TG: cmd_start from user={getattr(update.effective_user,'id',None)}")
     if not update.effective_chat:
         return
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="✅ telegram-guardian alive. /whoami")
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="âœ… telegram-guardian alive. /whoami")
 
 async def cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     _log(f"TG: cmd_whoami from user={getattr(update.effective_user,'id',None)}")
