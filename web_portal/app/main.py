@@ -2,7 +2,7 @@ import os
 import sys
 from contextlib import asynccontextmanager
 
-BUILD_STAMP = "2026-02-06T21:17:25+02:00"
+BUILD_STAMP = "2026-02-06T21:29:14+02:00"
 from fastapi import Query, FastAPI
 
 from .tg_webhook import router as tg_router
