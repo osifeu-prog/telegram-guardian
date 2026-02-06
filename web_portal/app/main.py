@@ -23,7 +23,7 @@ async def lifespan(app: FastAPI):
         print("APP: shutdown_bot error: " + repr(e), flush=True)
 
 
-app = FastAPI(title="telegram-guardian", lifespan=lifespan)
+app = FastAPI(title="telegram-guardian", version="tg-guardian-1", lifespan=lifespan)
 app.include_router(tg_router)
 
 
