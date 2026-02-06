@@ -27,7 +27,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     _log(f"TG: cmd_start from user={getattr(update.effective_user,'id',None)}")
     if not update.effective_chat:
         return
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="ط£آ¢ط¥â€œأ¢â‚¬آ¦ telegram-guardian alive. /whoami")
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="ط·آ£ط¢آ¢ط·آ¥أ¢â‚¬إ“ط£آ¢أ¢â€ڑآ¬ط¢آ¦ telegram-guardian alive. /whoami")
 
 async def cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     _log(f"TG: cmd_whoami from user={getattr(update.effective_user,'id',None)}")
