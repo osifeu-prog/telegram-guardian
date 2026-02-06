@@ -37,3 +37,11 @@ web_portal/alembic/script.py.mako
 
 web_portal/app/core/
 
+!web_portal/app/
+!web_portal/app/**
+
+# local junk
+web_portal/local.db
+web_portal/app/__pycache__/
+web_portal/app/core/__pycache__/
+
