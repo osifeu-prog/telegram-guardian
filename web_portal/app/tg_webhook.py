@@ -35,6 +35,7 @@ else:
     print("TG_SECRET_BOOT present=0")
 
 
+
 def _check_telegram_secret(x_telegram_bot_api_secret_token: str | None) -> None:
     # If secret is configured, enforce it. If not configured, allow (dev mode).
     if TELEGRAM_WEBHOOK_SECRET:
