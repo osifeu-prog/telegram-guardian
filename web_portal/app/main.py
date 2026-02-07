@@ -1,3 +1,7 @@
+# TG_BUILDSTAMP_ENV_V1
+import os as _os
+def _build_stamp() -> str:
+    return (_os.getenv("APP_BUILD_STAMP","") or "").strip() or "unknown"
 import os
 import sys
 from contextlib import asynccontextmanager
