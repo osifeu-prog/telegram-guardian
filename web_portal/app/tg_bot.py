@@ -1,3 +1,18 @@
+# TG_PTB_SINGLETON_V2
+# Single source of truth for python-telegram-bot Application (webhook mode)
+from telegram.ext import Application
+
+_TG_APP: Application | None = None
+
+def tg_get_app() -> Application:
+    global _TG_APP
+    if _TG_APP is None:
+        tok = _token()
+        if not tok:
+            raise RuntimeError("Telegram token missing (checked TELEGRAM_BOT_TOKEN/BOT_TOKEN/TELEGRAM_TOKEN/TG_BOT_TOKEN)")
+        _TG_APP = Application.builder().token(tok).build()
+    return _TG_APP
+
 # TG_TOKEN_PICKER_V1
 def _tg_pick_token() -> str:
     for k in ("TELEGRAM_BOT_TOKEN","BOT_TOKEN","TELEGRAM_TOKEN","TG_BOT_TOKEN"):
@@ -27,7 +42,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     _log(f"TG: cmd_start from user={getattr(update.effective_user,'id',None)}")
     if not update.effective_chat:
         return
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ·ط¢آ¥ط£آ¢أ¢â€ڑآ¬ط¥â€œط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ¦ telegram-guardian alive. /whoami")
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¥ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¥أ¢â‚¬إ“ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¢ط·آ¢ط¢آ¦ telegram-guardian alive. /whoami")
 
 async def cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     _log(f"TG: cmd_whoami from user={getattr(update.effective_user,'id',None)}")
@@ -80,4 +95,4 @@ async def process_update(payload: dict[str, Any]) -> None:
         return
     upd = Update.de_json(payload, app.bot)
     _log(f"TG: process_update update_id={getattr(upd,'update_id',None)}")
-    await app.process_update(upd)
+    await tg_get_app().process_update(upd)
