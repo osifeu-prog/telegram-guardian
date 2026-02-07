@@ -87,3 +87,47 @@ def ops_runtime(token: str = Query(..., description="OPS token")):
         "python": sys.version,
         "route_count": len(getattr(app.router, "routes", [])),
     }
+
+# TG_PTB_LIFECYCLE_V1
+# Ensure python-telegram-bot Application is initialized for webhook mode (PTB v21+)
+import os
+from telegram.ext import Application
+
+_TG_APP = None
+
+def _tg_get_token() -> str:
+    # prefer one canonical env, but allow legacy names (no secrets printed)
+    for k in ("TELEGRAM_BOT_TOKEN","BOT_TOKEN","TELEGRAM_TOKEN","TG_BOT_TOKEN"):
+        v = os.getenv(k, "").strip()
+        if v:
+            return v
+    return ""
+
+def tg_get_app() -> Application:
+    global _TG_APP
+    if _TG_APP is None:
+        token = _tg_get_token()
+        if not token:
+            raise RuntimeError("Missing Telegram bot token env (TELEGRAM_BOT_TOKEN/BOT_TOKEN/...)")
+        _TG_APP = Application.builder().token(token).build()
+    return _TG_APP
+
+@app.on_event("startup")
+async def _tg_startup():
+    try:
+        tg_app = tg_get_app()
+        await tg_app.initialize()
+        await tg_app.start()
+        print("TG_PTB: initialized+started")
+    except Exception as e:
+        print(f"TG_PTB_STARTUP_ERROR: {e!r}")
+
+@app.on_event("shutdown")
+async def _tg_shutdown():
+    try:
+        tg_app = tg_get_app()
+        await tg_app.stop()
+        await tg_app.shutdown()
+        print("TG_PTB: stopped+shutdown")
+    except Exception as e:
+        print(f"TG_PTB_SHUTDOWN_ERROR: {e!r}")
