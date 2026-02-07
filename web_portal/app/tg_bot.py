@@ -27,7 +27,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     _log(f"TG: cmd_start from user={getattr(update.effective_user,'id',None)}")
     if not update.effective_chat:
         return
-    await context.bot.send_message(chat_id=update.effective_chat.id, text="ط·آ£ط¢آ¢ط·آ¥أ¢â‚¬إ“ط£آ¢أ¢â€ڑآ¬ط¢آ¦ telegram-guardian alive. /whoami")
+    await context.bot.send_message(chat_id=update.effective_chat.id, text="ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ·ط¢آ¥ط£آ¢أ¢â€ڑآ¬ط¥â€œط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ¦ telegram-guardian alive. /whoami")
 
 async def cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     _log(f"TG: cmd_whoami from user={getattr(update.effective_user,'id',None)}")
@@ -46,7 +46,7 @@ def get_bot_app() -> Optional[Application]:
 
     tok = _token()
     if not tok:
-        _log("TG: TELEGRAM_BOT_TOKEN missing -> bot disabled")
+        _log("TG: bot token missing -> bot disabled (checked TELEGRAM_BOT_TOKEN/BOT_TOKEN/TELEGRAM_TOKEN/TG_BOT_TOKEN)")
         return None
 
     _app = Application.builder().token(tok).build()
