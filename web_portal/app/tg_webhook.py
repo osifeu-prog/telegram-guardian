@@ -31,7 +31,9 @@ def _secret_fingerprint(s: str) -> str:
 if TELEGRAM_WEBHOOK_SECRET:
     print("TG_SECRET_BOOT present=1 fp=" + _secret_fingerprint(TELEGRAM_WEBHOOK_SECRET))
 else:
-    print("TG_SECRET_BOOT present=0")def _check_telegram_secret(x_telegram_bot_api_secret_token: str | None) -> None:
+    print("TG_SECRET_BOOT present=0")
+
+def _check_telegram_secret(x_telegram_bot_api_secret_token: str | None) -> None:
     # If secret is configured, enforce it. If not configured, allow (dev mode).
     if TELEGRAM_WEBHOOK_SECRET:
         if not x_telegram_bot_api_secret_token or x_telegram_bot_api_secret_token.strip() != TELEGRAM_WEBHOOK_SECRET:
