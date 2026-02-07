@@ -131,3 +131,18 @@ async def _tg_shutdown():
         print("TG_PTB: stopped+shutdown")
     except Exception as e:
         print(f"TG_PTB_SHUTDOWN_ERROR: {e!r}")
+
+# OPS_BUILD_INFO_V1
+import subprocess
+
+def _git_sha_short() -> str:
+    try:
+        out = subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], stderr=subprocess.DEVNULL, text=True).strip()
+        return out or "unknown"
+    except Exception:
+        return "unknown"
+
+@app.get("/ops/build")
+def ops_build():
+    # No secrets: only commit id + file path (already shown in healthz)
+    return {"git_sha": _git_sha_short()}
