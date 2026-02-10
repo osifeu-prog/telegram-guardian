@@ -18,7 +18,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 from app.db import Base  # noqa: E402
-from web_portal.app import models  # noqa: F401,E402
+from app import models  # noqa: F401,E402
 
 target_metadata = Base.metadata
 
