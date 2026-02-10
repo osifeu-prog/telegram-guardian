@@ -8,8 +8,7 @@ ENV PYTHONPATH=/app
 
 ARG BUILD_MARKER=dev
 ENV APP_BUILD_STAMP=$BUILD_MARKER
-
-COPY requirements.txt ./requirements.txt
+COPY web_portal/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY web_portal/app ./app
