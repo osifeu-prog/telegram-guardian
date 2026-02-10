@@ -16,5 +16,4 @@ COPY web_portal/alembic.ini ./alembic.ini
 COPY web_portal/alembic ./alembic
 
 RUN echo "BUILD_MARKER=$APP_BUILD_STAMP" > /app/.build_marker
-
-CMD ["sh","-c","echo BOOT_OK__ROOT_DOCKERFILE_V5 stamp=$APP_BUILD_STAMP && (python -m alembic -c /app/alembic.ini upgrade head || echo 'WARN: alembic failed') && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
+CMD ["sh","-c","echo BOOT_OK__ROOT_DOCKERFILE_V5 stamp=$APP_BUILD_STAMP && if [ -n \"${DATABASE_URL:-}\" ]; then python -m alembic -c /app/alembic.ini upgrade head || echo 'WARN: alembic failed'; else echo 'SKIP: alembic (DATABASE_URL missing)'; fi && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080}"]
