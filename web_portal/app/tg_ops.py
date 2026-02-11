@@ -52,9 +52,9 @@ async def tg_simulate(
         entities = [{"offset": 0, "length": len(first_token), "type": "bot_command"}]
 
     payload: dict[str, Any] = {
-        "update_id": 1,
+        "update_id": 0,
         "message": {
-            "message_id": 1,
+            "message_id": 0,
             "date": 0,
             "chat": {"id": chat_id, "type": "private"},
             "from": {"id": from_user_id, "is_bot": False, "first_name": "smoke"},
