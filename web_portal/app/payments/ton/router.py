@@ -1,0 +1,80 @@
+from __future__ import annotations
+
+from decimal import Decimal
+from typing import Optional
+
+from fastapi import APIRouter, Depends, Header, HTTPException
+from sqlalchemy.orm import Session
+
+from app.manh.storage import get_db
+from .price_feed import get_ton_ils_cached
+from .toncenter import TonCenter
+from .service import (
+    create_invoice,
+    list_invoices,
+    poll_and_confirm_invoices,
+    require_internal_secret,
+    create_withdrawal_request,
+    list_withdrawals,
+)
+
+router = APIRouter(prefix="/pay", tags=["payments"])
+
+
+@router.post("/invoice")
+def pay_create_invoice(
+    user_id: int,
+    username: Optional[str] = None,
+    ils_amount: str = "10",
+    db: Session = Depends(get_db),
+):
+    try:
+        amt = Decimal(ils_amount)
+        q = get_ton_ils_cached()
+        inv = create_invoice(db, user_id=user_id, username=username, ils_amount=amt, ton_ils_rate=q.ton_ils)
+        return {"ok": True, "price": {"ton_ils": str(q.ton_ils), "source": q.source}, "invoice": inv.__dict__}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/invoices")
+def pay_list_invoices(user_id: int, db: Session = Depends(get_db)):
+    return {"ok": True, "invoices": list_invoices(db, user_id=user_id)}
+
+
+@router.post("/ton/poll")
+def pay_poll_ton(
+    x_internal_secret: Optional[str] = Header(default=None, alias="X-Internal-Secret"),
+    db: Session = Depends(get_db),
+):
+    try:
+        require_internal_secret(x_internal_secret)
+    except Exception:
+        raise HTTPException(status_code=401, detail="unauthorized")
+
+    tc = TonCenter()
+    # fetch recent incoming txs to treasury
+    from .service import _treasury_address  # type: ignore
+    txs = tc.get_transactions(_treasury_address(), limit=30)
+    res = poll_and_confirm_invoices(db, ton_transactions=txs)
+    return res
+
+
+@router.post("/withdraw")
+def pay_withdraw_request(
+    user_id: int,
+    username: Optional[str],
+    amount_manh: str,
+    target_ton_address: str,
+    db: Session = Depends(get_db),
+):
+    try:
+        amt = Decimal(amount_manh)
+        return create_withdrawal_request(db, user_id=user_id, username=username, amount_manh=amt, target_ton_address=target_ton_address)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.get("/withdrawals")
+def pay_list_withdrawals(user_id: int, db: Session = Depends(get_db)):
+    return {"ok": True, "withdrawals": list_withdrawals(db, user_id=user_id)}
