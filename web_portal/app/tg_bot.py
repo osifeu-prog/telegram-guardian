@@ -28,7 +28,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat = getattr(update, "effective_chat", None)
     if not chat:
         return
-    await context.bot.send_message(chat_id=chat.id, text="telegram-guardian alive ✅  (/whoami)")
+    await context.bot.send_message(chat_id=chat.id, text="telegram-guardian alive âœ…  (/whoami)")
 
 
 async def cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -97,10 +97,22 @@ async def process_update(payload: dict[str, Any]) -> None:
     """
     app = tg_get_app()
 
-    upd = Update.de_json(payload, app.bot)
+        upd = Update.de_json(payload, app.bot)
     if not upd:
         _log("TG: process_update: payload did not decode to Update")
+        _log(f"TG: raw keys={list(payload.keys())[:20]}")
         return
 
-    _log(f"TG: process_update dispatch update_id={getattr(upd,'update_id',None)}")
-    await app.process_update(upd)
+    # debug what arrived
+    msg = getattr(upd, "message", None)
+    txt = getattr(msg, "text", None) if msg else None
+    ent = getattr(msg, "entities", None) if msg else None
+    _log(f"TG: update_id={getattr(upd,'update_id',None)} kind=" +
+         ("message" if msg else "non-message") +
+         f" text={txt!r} entities={ent!r}")
+
+    try:
+        await app.process_update(upd)
+    except Exception as e:
+        _log(f"TG: app.process_update ERROR: {e!r}")
+        raise
