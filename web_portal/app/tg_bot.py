@@ -7,7 +7,8 @@ from telegram.error import TimedOut, NetworkError
 from telegram.ext import Application, ApplicationBuilder, CommandHandler, ContextTypes
 from telegram.request import HTTPXRequest
 
-
+from .manh.storage import get_db
+from .manh.service import set_opt_in, get_balance, leaderboard
 def _log(msg: str) -> None:
     print(msg, flush=True)
 
@@ -69,6 +70,89 @@ async def _on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     _log(f"TG_PTB_ERROR: {err!r}")
 
 
+
+async def _with_db(fn):
+    it = get_db()
+    db = next(it)
+    try:
+        return fn(db)
+    finally:
+        try:
+            next(it)
+        except StopIteration:
+            pass
+
+async def cmd_optin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat = getattr(update, "effective_chat", None)
+    user = getattr(update, "effective_user", None)
+    if not chat or not user:
+        return
+    def _do(db):
+        set_opt_in(db, int(user.id), True)
+        return True
+    await _with_db(_do)
+    await _safe_send(context, chat.id, "✅ Opt-in enabled. You are now on the MANH leaderboard.")
+
+async def cmd_optout(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat = getattr(update, "effective_chat", None)
+    user = getattr(update, "effective_user", None)
+    if not chat or not user:
+        return
+    def _do(db):
+        set_opt_in(db, int(user.id), False)
+        return True
+    await _with_db(_do)
+    await _safe_send(context, chat.id, "✅ Opt-out enabled. You are no longer on the MANH leaderboard.")
+
+async def cmd_manh(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat = getattr(update, "effective_chat", None)
+    user = getattr(update, "effective_user", None)
+    if not chat or not user:
+        return
+    def _do(db):
+        return get_balance(db, int(user.id))
+    bal = await _with_db(_do)
+    await _safe_send(context, chat.id, f"MANH={bal['manh']} | XP={bal['xp_points']}")
+
+async def cmd_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat = getattr(update, "effective_chat", None)
+    if not chat:
+        return
+    scope = "daily"
+    try:
+        txt = getattr(getattr(update, "message", None), "text", "") or ""
+        parts = txt.split()
+        if len(parts) > 1 and parts[1].lower() in ("daily", "weekly"):
+            scope = parts[1].lower()
+    except Exception:
+        pass
+
+    # compute bucket key same as router
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    from .manh.constants import LEADERBOARD_TZ
+    tz = ZoneInfo(LEADERBOARD_TZ)
+    now = datetime.now(tz)
+    if scope == "daily":
+        bucket_key = now.strftime("%Y-%m-%d")
+    else:
+        y, w, _ = now.isocalendar()
+        bucket_key = f"{y}-W{w:02d}"
+
+    def _do(db):
+        return leaderboard(db, bucket_scope=scope, bucket_key=bucket_key, limit=10)
+    rows = await _with_db(_do)
+
+    if not rows:
+        await _safe_send(context, chat.id, f"Leaderboard ({scope}) is empty right now.")
+        return
+
+    lines = [f"🏆 MANH Leaderboard ({scope}) {bucket_key}"]
+    for i, r in enumerate(rows, start=1):
+        name = r["username"] or str(r["user_id"])
+        lines.append(f"{i}. {name} — {r['total_manh']}")
+    await _safe_send(context, chat.id, "\n".join(lines))
+
 def tg_get_app() -> Application:
     global _APP
     if _APP is not None:
@@ -83,6 +167,10 @@ def tg_get_app() -> Application:
     app = ApplicationBuilder().token(token).request(req).build()
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("whoami", cmd_whoami))
+    app.add_handler(CommandHandler("optin", cmd_optin))
+    app.add_handler(CommandHandler("optout", cmd_optout))
+    app.add_handler(CommandHandler("manh", cmd_manh))
+    app.add_handler(CommandHandler("leaderboard", cmd_leaderboard))
     app.add_error_handler(_on_error)
 
     _APP = app
