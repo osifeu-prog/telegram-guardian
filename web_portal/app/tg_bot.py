@@ -1,4 +1,5 @@
 import os
+import asyncio
 from typing import Any, Optional
 
 from telegram import Update
@@ -10,6 +11,7 @@ def _log(msg: str) -> None:
 
 
 def _tg_pick_token() -> str:
+    # deterministic: first match wins
     for k in ("TELEGRAM_BOT_TOKEN", "BOT_TOKEN", "TELEGRAM_TOKEN", "TG_BOT_TOKEN"):
         v = (os.getenv(k) or "").strip()
         if v:
@@ -18,15 +20,15 @@ def _tg_pick_token() -> str:
 
 
 _APP: Optional[Application] = None
+_APP_LOCK = asyncio.Lock()
+_STARTED = False
 
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    uid = getattr(getattr(update, "effective_user", None), "id", None)
-    _log(f"TG: cmd_start user={uid}")
     chat = getattr(update, "effective_chat", None)
     if not chat:
         return
-    await context.bot.send_message(chat_id=chat.id, text="telegram-guardian alive ✅ (/whoami)")
+    await context.bot.send_message(chat_id=chat.id, text="telegram-guardian alive ✅  (/whoami)")
 
 
 async def cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -54,7 +56,45 @@ def tg_get_app() -> Application:
     return app
 
 
+async def init_bot() -> None:
+    """
+    Compatibility shim for app.main import.
+    Ensures PTB Application is initialized and started exactly once.
+    """
+    global _STARTED
+    async with _APP_LOCK:
+        if _STARTED:
+            return
+        app = tg_get_app()
+        await app.initialize()
+        await app.start()
+        _STARTED = True
+        _log("TG_PTB: initialized+started (init_bot)")
+
+
+async def shutdown_bot() -> None:
+    """
+    Compatibility shim for app.main import.
+    Stops PTB cleanly if it was started.
+    """
+    global _STARTED
+    async with _APP_LOCK:
+        if not _STARTED:
+            return
+        app = tg_get_app()
+        try:
+            await app.stop()
+        finally:
+            await app.shutdown()
+        _STARTED = False
+        _log("TG_PTB: stopped+shutdown (shutdown_bot)")
+
+
 async def process_update(payload: dict[str, Any]) -> None:
+    """
+    Called by FastAPI webhook endpoint with raw Telegram update JSON.
+    Dispatches into PTB so handlers run.
+    """
     app = tg_get_app()
 
     upd = Update.de_json(payload, app.bot)
