@@ -29,11 +29,14 @@ _APP_LOCK = asyncio.Lock()
 _STARTED = False
 
 
+
+_LAST_UPDATE_LOCK = asyncio.Lock()
+_LAST_UPDATE = {"ts_utc": None, "chat_id": None, "from_user_id": None, "text": None, "update_id": None}
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat = getattr(update, "effective_chat", None)
     if not chat:
         return
-    await context.bot.send_message(chat_id=chat.id, text="telegram-guardian alive âœ…  (/whoami)")
+    await context.bot.send_message(chat_id=chat.id, text="telegram-guardian alive أ¢إ“â€¦  (/whoami)")
 
 
 async def cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
