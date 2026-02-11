@@ -7,6 +7,10 @@ from telegram.error import TimedOut, NetworkError
 from telegram.ext import Application, ApplicationBuilder, CommandHandler, ContextTypes
 from telegram.request import HTTPXRequest
 
+from decimal import Decimal
+from .manh.storage import get_db
+from .payments.ton.price_feed import get_ton_ils_cached
+from .payments.ton.service import create_invoice, list_invoices, create_withdrawal_request, list_withdrawals
 from .manh.storage import get_db
 from .manh.service import set_opt_in, get_balance, leaderboard
 def _log(msg: str) -> None:
@@ -91,7 +95,7 @@ async def cmd_optin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         set_opt_in(db, int(user.id), True)
         return True
     await _with_db(_do)
-    await _safe_send(context, chat.id, "✅ Opt-in enabled. You are now on the MANH leaderboard.")
+    await _safe_send(context, chat.id, "âœ… Opt-in enabled. You are now on the MANH leaderboard.")
 
 async def cmd_optout(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat = getattr(update, "effective_chat", None)
@@ -102,7 +106,7 @@ async def cmd_optout(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         set_opt_in(db, int(user.id), False)
         return True
     await _with_db(_do)
-    await _safe_send(context, chat.id, "✅ Opt-out enabled. You are no longer on the MANH leaderboard.")
+    await _safe_send(context, chat.id, "âœ… Opt-out enabled. You are no longer on the MANH leaderboard.")
 
 async def cmd_manh(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat = getattr(update, "effective_chat", None)
@@ -147,10 +151,133 @@ async def cmd_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await _safe_send(context, chat.id, f"Leaderboard ({scope}) is empty right now.")
         return
 
-    lines = [f"🏆 MANH Leaderboard ({scope}) {bucket_key}"]
+    lines = [f"ًںڈ† MANH Leaderboard ({scope}) {bucket_key}"]
     for i, r in enumerate(rows, start=1):
         name = r["username"] or str(r["user_id"])
-        lines.append(f"{i}. {name} — {r['total_manh']}")
+        lines.append(f"{i}. {name} â€” {r['total_manh']}")
+    await _safe_send(context, chat.id, "\n".join(lines))
+
+async def _with_db(fn):
+    it = get_db()
+    db = next(it)
+    try:
+        return fn(db)
+    finally:
+        try:
+            next(it)
+        except StopIteration:
+            pass
+
+
+async def cmd_buy(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat = getattr(update, "effective_chat", None)
+    user = getattr(update, "effective_user", None)
+    if not chat or not user:
+        return
+
+    txt = getattr(getattr(update, "message", None), "text", "") or ""
+    parts = txt.split()
+    ils = "10"
+    if len(parts) >= 2:
+        ils = parts[1]
+
+    try:
+        amt = Decimal(str(ils))
+        q = get_ton_ils_cached()
+        def _do(db):
+            return create_invoice(db, user_id=int(user.id), username=getattr(user, "username", None), ils_amount=amt, ton_ils_rate=q.ton_ils)
+        inv = await _with_db(_do)
+
+        lines = []
+        lines.append("🧾 MANH Purchase Invoice")
+        lines.append(f"ILS={inv.ils_amount} | MANH={inv.manh_amount}")
+        lines.append(f"TON amount={inv.ton_amount}")
+        lines.append("")
+        lines.append("Send TON to:")
+        lines.append(inv.treasury_address)
+        lines.append("")
+        lines.append("Comment (MUST match):")
+        lines.append(inv.comment)
+        lines.append("")
+        lines.append(f"Expires (UTC): {inv.expires_at_utc}")
+        lines.append("")
+        lines.append("After payment, wait a bit and use /invoices. (Server confirms via polling)")
+        await _safe_send(context, chat.id, "\n".join(lines))
+    except Exception as e:
+        await _safe_send(context, chat.id, f"❌ buy failed: {e!r}")
+
+
+async def cmd_invoices(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat = getattr(update, "effective_chat", None)
+    user = getattr(update, "effective_user", None)
+    if not chat or not user:
+        return
+
+    def _do(db):
+        return list_invoices(db, user_id=int(user.id), limit=5)
+
+    rows = await _with_db(_do)
+    if not rows:
+        await _safe_send(context, chat.id, "No invoices yet. Use /buy 10")
+        return
+
+    lines = ["🧾 Your invoices (last 5)"]
+    for r in rows:
+        lines.append(f"- {r['invoice_id']} | {r['status']} | TON={r['ton_amount']} | MANH={r['manh_amount']}")
+    await _safe_send(context, chat.id, "\n".join(lines))
+
+
+async def cmd_withdraw(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat = getattr(update, "effective_chat", None)
+    user = getattr(update, "effective_user", None)
+    if not chat or not user:
+        return
+
+    txt = getattr(getattr(update, "message", None), "text", "") or ""
+    parts = txt.split()
+    if len(parts) < 3:
+        await _safe_send(context, chat.id, "Usage: /withdraw <amount_manh> <TON_ADDRESS>")
+        return
+
+    amount = parts[1]
+    addr = parts[2]
+
+    try:
+        amt = Decimal(str(amount))
+        def _do(db):
+            return create_withdrawal_request(
+                db,
+                user_id=int(user.id),
+                username=getattr(user, "username", None),
+                amount_manh=amt,
+                target_ton_address=addr,
+            )
+        res = await _with_db(_do)
+        if res.get("ok"):
+            await _safe_send(context, chat.id, f"✅ Withdrawal requested. id={res['withdrawal_id']} status={res['status']}")
+        else:
+            await _safe_send(context, chat.id, f"❌ Withdrawal rejected: {res}")
+    except Exception as e:
+        await _safe_send(context, chat.id, f"❌ withdraw failed: {e!r}")
+
+
+async def cmd_withdrawals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat = getattr(update, "effective_chat", None)
+    user = getattr(update, "effective_user", None)
+    if not chat or not user:
+        return
+
+    def _do(db):
+        return list_withdrawals(db, user_id=int(user.id), limit=5)
+
+    rows = await _with_db(_do)
+    if not rows:
+        await _safe_send(context, chat.id, "No withdrawals yet.")
+        return
+
+    lines = ["🏦 Your withdrawals (last 5)"]
+    for r in rows:
+        lines.append(f"- {r['withdrawal_id']} | {r['status']} | MANH={r['amount_manh']} | to={r['target_ton_address']}")
     await _safe_send(context, chat.id, "\n".join(lines))
 
 def tg_get_app() -> Application:
