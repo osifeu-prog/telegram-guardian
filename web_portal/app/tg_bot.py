@@ -1,5 +1,4 @@
 import os
-import asyncio
 from typing import Any, Optional
 
 from telegram import Update
@@ -11,7 +10,6 @@ def _log(msg: str) -> None:
 
 
 def _tg_pick_token() -> str:
-    # first match wins
     for k in ("TELEGRAM_BOT_TOKEN", "BOT_TOKEN", "TELEGRAM_TOKEN", "TG_BOT_TOKEN"):
         v = (os.getenv(k) or "").strip()
         if v:
@@ -19,7 +17,6 @@ def _tg_pick_token() -> str:
     return ""
 
 
-_APP_LOCK = asyncio.Lock()
 _APP: Optional[Application] = None
 
 
@@ -33,10 +30,10 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    me = await context.bot.get_me()
     chat = getattr(update, "effective_chat", None)
     if not chat:
         return
+    me = await context.bot.get_me()
     await context.bot.send_message(chat_id=chat.id, text=f"bot=@{me.username} id={me.id}")
 
 
