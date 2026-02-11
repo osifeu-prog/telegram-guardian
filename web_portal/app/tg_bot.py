@@ -36,7 +36,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat = getattr(update, "effective_chat", None)
     if not chat:
         return
-    await context.bot.send_message(chat_id=chat.id, text="telegram-guardian alive ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ·ط¢آ¥ط£آ¢أ¢â€ڑآ¬ط¥â€œط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ¦  (/whoami)")
+    await context.bot.send_message(chat_id=chat.id, text="telegram-guardian alive ط·آ·ط¢آ·ط·آ¢ط¢آ£ط·آ·ط¢آ¢ط·آ¢ط¢آ¢ط·آ·ط¢آ·ط·آ¢ط¢آ¥ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¥أ¢â‚¬إ“ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ·ط¢آ¢ط·آ¢ط¢آ¦  (/whoami)")
 
 
 async def cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -70,17 +70,36 @@ async def init_bot() -> None:
     """
     Compatibility shim for app.main import.
     Ensures PTB Application is initialized and started exactly once.
+
+    IMPORTANT:
+    - Webhook handlers may call this repeatedly; it MUST be idempotent.
+    - PTB can raise RuntimeError("This Application is already running!") on start().
     """
     global _STARTED
     async with _APP_LOCK:
         if _STARTED:
             return
-        app = tg_get_app()
-        await app.initialize()
-        await app.start()
-        _STARTED = True
-        _log("TG_PTB: initialized+started (init_bot)")
 
+        app = tg_get_app()
+
+        # initialize() can also be called only once
+        try:
+            await app.initialize()
+        except RuntimeError as e:
+            msg = str(e)
+            if "already" not in msg.lower():
+                raise
+
+        # start() must not crash if already running (can happen with repeated webhook calls)
+        try:
+            await app.start()
+        except RuntimeError as e:
+            msg = str(e)
+            if "already running" not in msg.lower():
+                raise
+
+        _STARTED = True
+        _log("TG_PTB: initialized+started (init_bot, idempotent)")
 
 async def shutdown_bot() -> None:
     """
