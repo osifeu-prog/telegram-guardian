@@ -2,7 +2,6 @@ import os
 from typing import Any, Optional
 
 from fastapi import APIRouter, Header, HTTPException
-from telegram import Update
 
 from .tg_bot import tg_get_app, process_update, get_last_update_snapshot
 
@@ -15,6 +14,14 @@ def _require_secret(x_secret: Optional[str]) -> None:
         raise HTTPException(status_code=500, detail="server missing TELEGRAM_WEBHOOK_SECRET")
     if not x_secret or x_secret.strip() != expected:
         raise HTTPException(status_code=401, detail="unauthorized")
+
+
+@router.get("/last")
+async def tg_last(
+    x_telegram_bot_api_secret_token: Optional[str] = Header(default=None, alias="X-Telegram-Bot-Api-Secret-Token"),
+):
+    _require_secret(x_telegram_bot_api_secret_token)
+    return {"ok": True, "last": get_last_update_snapshot()}
 
 
 @router.post("/ping")
@@ -39,7 +46,6 @@ async def tg_simulate(
 ):
     _require_secret(x_telegram_bot_api_secret_token)
 
-    # minimal Update payload: message text + optional bot_command entity
     first_token = (text.split() or [""])[0]
     entities = []
     if first_token.startswith("/") and len(first_token) > 1:
@@ -59,11 +65,3 @@ async def tg_simulate(
 
     await process_update(payload)
     return {"ok": True}
-
-
-@router.get("/last")
-async def tg_last(
-    x_telegram_bot_api_secret_token: Optional[str] = Header(default=None, alias="X-Telegram-Bot-Api-Secret-Token"),
-):
-    _require_secret(x_telegram_bot_api_secret_token)
-    return {"ok": True, "last": get_last_update_snapshot()}
