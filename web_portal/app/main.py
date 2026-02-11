@@ -1,3 +1,4 @@
+from .tg_ops import router as tg_ops_router
 # TG_BUILDSTAMP_ENV_V1
 import os as _os
 def _build_stamp() -> str:
