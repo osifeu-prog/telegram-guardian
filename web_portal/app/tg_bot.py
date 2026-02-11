@@ -36,7 +36,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat = getattr(update, "effective_chat", None)
     if not chat:
         return
-    await context.bot.send_message(chat_id=chat.id, text="telegram-guardian alive أ¢إ“â€¦  (/whoami)")
+    await context.bot.send_message(chat_id=chat.id, text="telegram-guardian alive ط£آ¢ط¥â€œأ¢â‚¬آ¦  (/whoami)")
 
 
 async def cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
