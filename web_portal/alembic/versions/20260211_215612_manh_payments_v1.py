@@ -1,9 +1,9 @@
-\"\"\"MANH payments V1: invoices + purchases + withdrawals
+"""MANH payments V1: invoices + purchases + withdrawals
 
 Revision ID: 20260211_215612_manh_payments_v1
 Revises: ca606197b19a
 Create Date: 2026-02-11T21:56:12
-\"\"\"
+"""
 
 from alembic import op
 import sqlalchemy as sa

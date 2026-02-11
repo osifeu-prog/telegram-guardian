@@ -104,11 +104,11 @@ def create_invoice(
 
     db.execute(
         text(
-            \"\"\"
+            """
             INSERT INTO manh_invoices(invoice_id, user_id, username, ils_amount, manh_amount, ton_amount,
                                       ton_ils_rate, ton_treasury_address, comment, sig16, status, created_at, expires_at)
             VALUES (:id, :u, :name, :ils, :manh, :ton, :rate, :addr, :cmt, :sig16, 'PENDING', now(), :exp)
-            \"\"\"
+            """
         ),
         {
             "id": invoice_id,
@@ -141,14 +141,14 @@ def create_invoice(
 def list_invoices(db: Session, *, user_id: int, limit: int = 10) -> list[dict[str, Any]]:
     rows = db.execute(
         text(
-            \"\"\"
+            """
             SELECT invoice_id, status, ils_amount::numeric, manh_amount::numeric, ton_amount::numeric,
                    comment, created_at, expires_at, confirmed_at
             FROM manh_invoices
             WHERE user_id=:u
             ORDER BY created_at DESC
             LIMIT :lim
-            \"\"\"
+            """
         ),
         {"u": user_id, "lim": limit},
     ).fetchall()
@@ -207,13 +207,13 @@ def poll_and_confirm_invoices(db: Session, *, ton_transactions: list[dict[str, A
     # Find pending invoices not expired
     inv_rows = db.execute(
         text(
-            \"\"\"
+            """
             SELECT invoice_id, user_id, username, ton_amount::numeric, manh_amount::numeric, comment, sig16
             FROM manh_invoices
             WHERE status='PENDING' AND expires_at > now()
             ORDER BY created_at ASC
             LIMIT 200
-            \"\"\"
+            """
         )
     ).fetchall()
 
@@ -254,19 +254,19 @@ def poll_and_confirm_invoices(db: Session, *, ton_transactions: list[dict[str, A
 
             # mark confirmed
             db.execute(
-                text(\"\"\"UPDATE manh_invoices SET status='CONFIRMED', confirmed_at=now() WHERE invoice_id=:id AND status='PENDING'\"\"\"),
+                text("""UPDATE manh_invoices SET status='CONFIRMED', confirmed_at=now() WHERE invoice_id=:id AND status='PENDING'"""),
                 {"id": inv["invoice_id"]},
             )
 
             # add purchased tracker
             db.execute(
                 text(
-                    \"\"\"
+                    """
                     INSERT INTO manh_purchases(invoice_id, user_id, manh_amount, ils_amount, created_at)
                     SELECT invoice_id, user_id, manh_amount, ils_amount, now()
                     FROM manh_invoices
                     WHERE invoice_id=:id
-                    \"\"\"
+                    """
                 ),
                 {"id": inv["invoice_id"]},
             )
@@ -302,7 +302,7 @@ def poll_and_confirm_invoices(db: Session, *, ton_transactions: list[dict[str, A
 def eligible_for_withdrawal(db: Session, user_id: int) -> bool:
     # must have purchased >= MIN_BUY_FOR_WITHDRAWAL (from owner)
     row = db.execute(
-        text(\"\"\"SELECT COALESCE(SUM(manh_amount),0)::numeric FROM manh_purchases WHERE user_id=:u\"\"\"),
+        text("""SELECT COALESCE(SUM(manh_amount),0)::numeric FROM manh_purchases WHERE user_id=:u"""),
         {"u": user_id},
     ).fetchone()
     total = Decimal(str(row[0])) if row else Decimal("0")
@@ -329,7 +329,7 @@ def create_withdrawal_request(
     # ensure opted-in is NOT required for withdrawal (privacy)
     # balance check using manh ledger
     row = db.execute(
-        text(\"\"\"SELECT COALESCE(SUM(amount_manh),0)::numeric FROM manh_ledger WHERE user_id=:u\"\"\"),
+        text("""SELECT COALESCE(SUM(amount_manh),0)::numeric FROM manh_ledger WHERE user_id=:u"""),
         {"u": user_id},
     ).fetchone()
     bal = Decimal(str(row[0])) if row else Decimal("0")
@@ -340,10 +340,10 @@ def create_withdrawal_request(
 
     db.execute(
         text(
-            \"\"\"
+            """
             INSERT INTO manh_withdrawals(withdrawal_id, user_id, username, amount_manh, target_ton_address, status, created_at)
             VALUES (:id, :u, :name, :amt, :addr, 'REQUESTED', now())
-            \"\"\"
+            """
         ),
         {"id": wid, "u": user_id, "name": username, "amt": str(amount_manh), "addr": target_ton_address},
     )
@@ -354,13 +354,13 @@ def create_withdrawal_request(
 def list_withdrawals(db: Session, *, user_id: int, limit: int = 10) -> list[dict[str, Any]]:
     rows = db.execute(
         text(
-            \"\"\"
+            """
             SELECT withdrawal_id, status, amount_manh::numeric, target_ton_address, created_at, decided_at
             FROM manh_withdrawals
             WHERE user_id=:u
             ORDER BY created_at DESC
             LIMIT :lim
-            \"\"\"
+            """
         ),
         {"u": user_id, "lim": limit},
     ).fetchall()
