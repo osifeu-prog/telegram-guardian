@@ -158,3 +158,69 @@ def build_info():
         "app_build_stamp": os.getenv("APP_BUILD_STAMP", ""),
         "railway_git_commit_sha": os.getenv("RAILWAY_GIT_COMMIT_SHA", ""),
     }
+
+# =========================
+# OPS / HEALTH (DB CHECK)
+# =========================
+import os
+import time
+from datetime import datetime, timezone
+
+from sqlalchemy import text, create_engine
+
+_OPS_STARTED_AT = datetime.now(timezone.utc)
+_OPS_STARTED_TS = time.time()
+
+def _ops_uptime_seconds() -> int:
+    return int(time.time() - _OPS_STARTED_TS)
+
+def _ops_db_check() -> dict:
+    url = (os.getenv("DATABASE_URL") or "").strip()
+    if not url:
+        return {
+            "ok": False,
+            "skipped": True,
+            "reason": "DATABASE_URL missing",
+        }
+
+    # try reuse app.db.engine if exists (preferred), else build a local engine
+    eng = None
+    try:
+        from app.db import engine as _engine  # type: ignore
+        eng = _engine
+    except Exception:
+        eng = create_engine(url, pool_pre_ping=True)
+
+    out: dict = {"ok": False, "skipped": False}
+    try:
+        with eng.connect() as conn:
+            conn.execute(text("SELECT 1"))
+            out["select1_ok"] = True
+
+            # optional: check alembic version table (if migrations ran)
+            try:
+                v = conn.execute(text("SELECT version_num FROM alembic_version")).scalar()
+                out["alembic_version"] = v
+                out["alembic_version_ok"] = True
+            except Exception as e:
+                out["alembic_version_ok"] = False
+                out["alembic_version_error"] = str(e)
+
+        out["ok"] = True
+        return out
+    except Exception as e:
+        out["error"] = str(e)
+        return out
+
+@app.get("/ops/health")
+def ops_health():
+    db = _ops_db_check()
+    ok = bool(db.get("ok"))
+    return {
+        "ok": ok,
+        "ts_utc": datetime.now(timezone.utc).isoformat(),
+        "uptime_seconds": _ops_uptime_seconds(),
+        "app_build_stamp": os.getenv("APP_BUILD_STAMP", ""),
+        "railway_git_commit_sha": os.getenv("RAILWAY_GIT_COMMIT_SHA", ""),
+        "db": db,
+    }
