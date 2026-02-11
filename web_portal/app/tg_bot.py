@@ -36,7 +36,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat = getattr(update, "effective_chat", None)
     if not chat:
         return
-    await context.bot.send_message(chat_id=chat.id, text="telegram-guardian alive ط·آ£ط¢آ¢ط·آ¥أ¢â‚¬إ“ط£آ¢أ¢â€ڑآ¬ط¢آ¦  (/whoami)")
+    await context.bot.send_message(chat_id=chat.id, text="telegram-guardian alive ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ·ط¢آ¥ط£آ¢أ¢â€ڑآ¬ط¥â€œط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ¦  (/whoami)")
 
 
 async def cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -108,6 +108,8 @@ async def process_update(payload: dict[str, Any]) -> None:
     app = tg_get_app()
 
     upd = Update.de_json(payload, app.bot)
+
+    await _capture_last_update(upd)
     if not upd:
         _log("TG: process_update: payload did not decode to Update")
         return
@@ -144,3 +146,28 @@ async def process_update(payload: dict[str, Any]) -> None:
     except Exception as e:
         _log(f"TG: app.process_update ERROR: {e!r}")
         raise
+
+# ---- last update tracking (in-memory) ----
+from datetime import datetime, timezone
+
+_LAST_UPDATE = {"ts_utc": None, "chat_id": None, "from_user_id": None, "text": None, "update_id": None}
+_LAST_UPDATE_LOCK = asyncio.Lock()
+
+def get_last_update_snapshot() -> dict:
+    # shallow copy for safe read
+    return dict(_LAST_UPDATE)
+
+async def _capture_last_update(upd) -> None:
+    try:
+        msg = getattr(upd, "message", None)
+        chat = getattr(msg, "chat", None) if msg else None
+        frm  = getattr(msg, "from_user", None) if msg else None
+        async with _LAST_UPDATE_LOCK:
+            _LAST_UPDATE["ts_utc"] = datetime.now(timezone.utc).isoformat()
+            _LAST_UPDATE["update_id"] = getattr(upd, "update_id", None)
+            _LAST_UPDATE["chat_id"] = getattr(chat, "id", None) if chat else None
+            _LAST_UPDATE["from_user_id"] = getattr(frm, "id", None) if frm else None
+            _LAST_UPDATE["text"] = getattr(msg, "text", None) if msg else None
+    except Exception:
+        # never crash app on telemetry
+        return
