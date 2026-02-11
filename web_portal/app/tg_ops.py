@@ -1,11 +1,8 @@
 import os
 from fastapi import APIRouter, Header, HTTPException
-from telegram import Update
-
-from .tg_bot import tg_get_app, process_update
+from .tg_bot import tg_get_app, process_update, _LAST_UPDATE
 
 router = APIRouter(prefix="/tg", tags=["tg-ops"])
-
 
 def _require_secret(x_secret: str | None) -> None:
     expected = (os.getenv("TELEGRAM_WEBHOOK_SECRET") or "").strip()
@@ -14,7 +11,6 @@ def _require_secret(x_secret: str | None) -> None:
     if not x_secret or x_secret.strip() != expected:
         raise HTTPException(status_code=401, detail="unauthorized")
 
-
 @router.post("/ping")
 async def tg_ping(
     chat_id: int,
@@ -22,12 +18,10 @@ async def tg_ping(
     x_telegram_bot_api_secret_token: str | None = Header(default=None, alias="X-Telegram-Bot-Api-Secret-Token"),
 ):
     _require_secret(x_telegram_bot_api_secret_token)
-
     app = tg_get_app()
     me = await app.bot.get_me()
     msg = await app.bot.send_message(chat_id=chat_id, text=text)
     return {"ok": True, "bot": {"username": me.username, "id": me.id}, "message_id": msg.message_id}
-
 
 @router.post("/simulate")
 async def tg_simulate(
@@ -38,7 +32,6 @@ async def tg_simulate(
 ):
     _require_secret(x_telegram_bot_api_secret_token)
 
-    # Build a minimal Telegram Update payload
     payload = {
         "update_id": 999999999,
         "message": {
@@ -52,6 +45,12 @@ async def tg_simulate(
             else [],
         },
     }
-
     await process_update(payload)
     return {"ok": True}
+
+@router.get("/last")
+async def tg_last(
+    x_telegram_bot_api_secret_token: str | None = Header(default=None, alias="X-Telegram-Bot-Api-Secret-Token"),
+):
+    _require_secret(x_telegram_bot_api_secret_token)
+    return {"ok": True, "last": _LAST_UPDATE}
