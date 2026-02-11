@@ -3,7 +3,12 @@ import asyncio
 from typing import Any, Optional
 
 from telegram import Update
-from telegram.ext import Application, ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import (
+    Application,
+    ApplicationBuilder,
+    CommandHandler,
+    ContextTypes,
+)
 
 
 def _log(msg: str) -> None:
@@ -28,7 +33,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat = getattr(update, "effective_chat", None)
     if not chat:
         return
-    await context.bot.send_message(chat_id=chat.id, text="telegram-guardian alive âœ…  (/whoami)")
+    await context.bot.send_message(chat_id=chat.id, text="telegram-guardian alive ✅  (/whoami)")
 
 
 async def cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -46,7 +51,9 @@ def tg_get_app() -> Application:
 
     token = _tg_pick_token()
     if not token:
-        raise RuntimeError("Telegram token missing (checked TELEGRAM_BOT_TOKEN/BOT_TOKEN/TELEGRAM_TOKEN/TG_BOT_TOKEN)")
+        raise RuntimeError(
+            "Telegram token missing (checked TELEGRAM_BOT_TOKEN/BOT_TOKEN/TELEGRAM_TOKEN/TG_BOT_TOKEN)"
+        )
 
     app = ApplicationBuilder().token(token).build()
     app.add_handler(CommandHandler("start", cmd_start))
@@ -97,19 +104,21 @@ async def process_update(payload: dict[str, Any]) -> None:
     """
     app = tg_get_app()
 
-        upd = Update.de_json(payload, app.bot)
+    upd = Update.de_json(payload, app.bot)
     if not upd:
         _log("TG: process_update: payload did not decode to Update")
         _log(f"TG: raw keys={list(payload.keys())[:20]}")
         return
 
-    # debug what arrived
     msg = getattr(upd, "message", None)
     txt = getattr(msg, "text", None) if msg else None
     ent = getattr(msg, "entities", None) if msg else None
-    _log(f"TG: update_id={getattr(upd,'update_id',None)} kind=" +
-         ("message" if msg else "non-message") +
-         f" text={txt!r} entities={ent!r}")
+
+    _log(
+        f"TG: update_id={getattr(upd,'update_id',None)} "
+        f"kind={'message' if msg else 'non-message'} "
+        f"text={txt!r} entities={ent!r}"
+    )
 
     try:
         await app.process_update(upd)
