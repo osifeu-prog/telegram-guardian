@@ -51,3 +51,7 @@ web_portal/local.db
 web_portal/app/__pycache__/
 web_portal/app/core/__pycache__/
 
+__pycache__/
+*.pyc
+.expo/
+lib/
