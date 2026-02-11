@@ -1,3 +1,4 @@
+from .manh.router import router as manh_router
 from .tg_ops import router as tg_ops_router
 # TG_BUILDSTAMP_ENV_V1
 import os as _os
@@ -29,6 +30,7 @@ async def lifespan(app: FastAPI):
         print("APP: shutdown_bot error: " + repr(e), flush=True)
 app = FastAPI(title="telegram-guardian", version="tg-guardian-1")
 app.include_router(tg_ops_router)
+app.include_router(manh_router)
 @app.middleware("http")
 async def _no_cache_openapi(request, call_next):
     resp = await call_next(request)
