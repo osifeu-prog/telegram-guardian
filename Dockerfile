@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
 
 ARG BUILD_MARKER=dev
-ENV APP_BUILD_STAMP=20260211-122251
+ENV APP_BUILD_STAMP=20260211-131014
 COPY web_portal/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
