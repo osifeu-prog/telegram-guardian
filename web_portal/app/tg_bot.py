@@ -36,7 +36,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat = getattr(update, "effective_chat", None)
     if not chat:
         return
-    await context.bot.send_message(chat_id=chat.id, text="telegram-guardian alive ط£آ¢ط¥â€œأ¢â‚¬آ¦  (/whoami)")
+    await context.bot.send_message(chat_id=chat.id, text="telegram-guardian alive ط·آ£ط¢آ¢ط·آ¥أ¢â‚¬إ“ط£آ¢أ¢â€ڑآ¬ط¢آ¦  (/whoami)")
 
 
 async def cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -110,18 +110,34 @@ async def process_update(payload: dict[str, Any]) -> None:
     upd = Update.de_json(payload, app.bot)
     if not upd:
         _log("TG: process_update: payload did not decode to Update")
-        _log(f"TG: raw keys={list(payload.keys())[:20]}")
         return
 
     msg = getattr(upd, "message", None)
+    chat = getattr(msg, "chat", None) if msg else None
+    frm = getattr(msg, "from_user", None) if msg else None
+
+    chat_id = getattr(chat, "id", None) if chat else None
+    from_user_id = getattr(frm, "id", None) if frm else None
     txt = getattr(msg, "text", None) if msg else None
     ent = getattr(msg, "entities", None) if msg else None
 
+    # store last update (in-memory)
+    async with _LAST_UPDATE_LOCK:
+        _LAST_UPDATE["ts_utc"] = __import__("datetime").datetime.utcnow().isoformat() + "Z"
+        _LAST_UPDATE["chat_id"] = chat_id
+        _LAST_UPDATE["from_user_id"] = from_user_id
+        _LAST_UPDATE["text"] = txt
+        _LAST_UPDATE["update_id"] = getattr(upd, "update_id", None)
+
     _log(
         f"TG: update_id={getattr(upd,'update_id',None)} "
+        f"chat_id={chat_id} from_user_id={from_user_id} "
         f"kind={'message' if msg else 'non-message'} "
         f"text={txt!r} entities={ent!r}"
     )
+
+    # ensure PTB app started (idempotent)
+    await init_bot()
 
     try:
         await app.process_update(upd)
