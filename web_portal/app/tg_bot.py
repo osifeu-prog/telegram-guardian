@@ -11,7 +11,7 @@ def _log(msg: str) -> None:
 
 
 def _tg_pick_token() -> str:
-    # keep it deterministic: first match wins
+    # first match wins
     for k in ("TELEGRAM_BOT_TOKEN", "BOT_TOKEN", "TELEGRAM_TOKEN", "TG_BOT_TOKEN"):
         v = (os.getenv(k) or "").strip()
         if v:
@@ -50,8 +50,6 @@ def tg_get_app() -> Application:
         raise RuntimeError("Telegram token missing (checked TELEGRAM_BOT_TOKEN/BOT_TOKEN/TELEGRAM_TOKEN/TG_BOT_TOKEN)")
 
     app = ApplicationBuilder().token(token).build()
-
-    # handlers
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CommandHandler("whoami", cmd_whoami))
 
@@ -60,13 +58,8 @@ def tg_get_app() -> Application:
 
 
 async def process_update(payload: dict[str, Any]) -> None:
-    """
-    Called by FastAPI webhook endpoint with raw Telegram update JSON.
-    This MUST dispatch into PTB so handlers run.
-    """
     app = tg_get_app()
 
-    # Convert JSON -> Update
     upd = Update.de_json(payload, app.bot)
     if not upd:
         _log("TG: process_update: payload did not decode to Update")
