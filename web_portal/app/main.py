@@ -150,3 +150,11 @@ def _git_sha_short() -> str:
 def ops_build():
     # No secrets: only commit id + file path (already shown in healthz)
     return {"git_sha": _git_sha_short()}
+import os
+
+@app.get("/build")
+def build_info():
+    return {
+        "app_build_stamp": os.getenv("APP_BUILD_STAMP", ""),
+        "railway_git_commit_sha": os.getenv("RAILWAY_GIT_COMMIT_SHA", ""),
+    }
