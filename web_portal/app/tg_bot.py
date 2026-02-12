@@ -55,7 +55,7 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not chat:
         return
     # use unicode escape to avoid encoding glitches
-    await _safe_send(context, chat.id, "telegram-guardian alive \u2705  (/whoami)")
+    await _safe_send(context, chat.id, "telegram-guardian \u05D7\u05D9 \u2705  (/whoami)")
 
 
 async def cmd_whoami(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -95,7 +95,7 @@ async def cmd_optin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         set_opt_in(db, int(user.id), True)
         return True
     await _with_db(_do)
-    await _safe_send(context, chat.id, "ط£آ¢ط¥â€œأ¢â‚¬آ¦ Opt-in enabled. You are now on the MANH leaderboard.")
+    await _safe_send(context, chat.id, "ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ·ط¢آ¥ط£آ¢أ¢â€ڑآ¬ط¥â€œط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ¦ Opt-in enabled. You are now on the MANH leaderboard.")
 
 async def cmd_optout(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat = getattr(update, "effective_chat", None)
@@ -106,7 +106,7 @@ async def cmd_optout(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
         set_opt_in(db, int(user.id), False)
         return True
     await _with_db(_do)
-    await _safe_send(context, chat.id, "ط£آ¢ط¥â€œأ¢â‚¬آ¦ Opt-out enabled. You are no longer on the MANH leaderboard.")
+    await _safe_send(context, chat.id, "ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ·ط¢آ¥ط£آ¢أ¢â€ڑآ¬ط¥â€œط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ¦ Opt-out enabled. You are no longer on the MANH leaderboard.")
 
 async def cmd_manh(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat = getattr(update, "effective_chat", None)
@@ -151,10 +151,10 @@ async def cmd_leaderboard(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await _safe_send(context, chat.id, f"Leaderboard ({scope}) is empty right now.")
         return
 
-    lines = [f"ط¸â€¹ط¹ط›ط¹ث†أ¢â‚¬آ  MANH Leaderboard ({scope}) {bucket_key}"]
+    lines = [f"ط·آ·ط¢آ¸ط£آ¢أ¢â€ڑآ¬ط¢آ¹ط·آ·ط¢آ¹ط·آ·أ¢â‚¬ط›ط·آ·ط¢آ¹ط·آ«أ¢â‚¬آ ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط·آ¢ط¢آ  MANH Leaderboard ({scope}) {bucket_key}"]
     for i, r in enumerate(rows, start=1):
         name = r["username"] or str(r["user_id"])
-        lines.append(f"{i}. {name} ط£آ¢أ¢â€ڑآ¬أ¢â‚¬â€Œ {r['total_manh']}")
+        lines.append(f"{i}. {name} ط·آ·ط¢آ£ط·آ¢ط¢آ¢ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¹â€کط·آ¢ط¢آ¬ط·آ£ط¢آ¢ط£آ¢أ¢â‚¬ع‘ط¢آ¬ط£آ¢أ¢â€ڑآ¬ط¥â€™ {r['total_manh']}")
     await _safe_send(context, chat.id, "\n".join(lines))
 
 async def _with_db(fn):
@@ -189,7 +189,7 @@ async def cmd_buy(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         inv = await _with_db(_do)
 
         lines = []
-        lines.append("ظ‹ع؛آ§آ¾ MANH Purchase Invoice")
+        lines.append("ط·آ¸أ¢â‚¬آ¹ط·آ¹ط·â€؛ط·آ¢ط¢آ§ط·آ¢ط¢آ¾ MANH Purchase Invoice")
         lines.append(f"ILS={inv.ils_amount} | MANH={inv.manh_amount}")
         lines.append(f"TON amount={inv.ton_amount}")
         lines.append("")
@@ -204,7 +204,7 @@ async def cmd_buy(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         lines.append("After payment, wait a bit and use /invoices. (Server confirms via polling)")
         await _safe_send(context, chat.id, "\n".join(lines))
     except Exception as e:
-        await _safe_send(context, chat.id, f"أ¢â€Œإ’ buy failed: {e!r}")
+        await _safe_send(context, chat.id, f"ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¥â€™ط·آ¥أ¢â‚¬â„¢ buy failed: {e!r}")
 
 
 async def cmd_invoices(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -221,7 +221,7 @@ async def cmd_invoices(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await _safe_send(context, chat.id, "No invoices yet. Use /buy 10")
         return
 
-    lines = ["ظ‹ع؛آ§آ¾ Your invoices (last 5)"]
+    lines = ["ط·آ¸أ¢â‚¬آ¹ط·آ¹ط·â€؛ط·آ¢ط¢آ§ط·آ¢ط¢آ¾ Your invoices (last 5)"]
     for r in rows:
         lines.append(f"- {r['invoice_id']} | {r['status']} | TON={r['ton_amount']} | MANH={r['manh_amount']}")
     await _safe_send(context, chat.id, "\n".join(lines))
@@ -254,11 +254,11 @@ async def cmd_withdraw(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             )
         res = await _with_db(_do)
         if res.get("ok"):
-            await _safe_send(context, chat.id, f"أ¢إ“â€¦ Withdrawal requested. id={res['withdrawal_id']} status={res['status']}")
+            await _safe_send(context, chat.id, f"ط·آ£ط¢آ¢ط·آ¥أ¢â‚¬إ“ط£آ¢أ¢â€ڑآ¬ط¢آ¦ Withdrawal requested. id={res['withdrawal_id']} status={res['status']}")
         else:
-            await _safe_send(context, chat.id, f"أ¢â€Œإ’ Withdrawal rejected: {res}")
+            await _safe_send(context, chat.id, f"ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¥â€™ط·آ¥أ¢â‚¬â„¢ Withdrawal rejected: {res}")
     except Exception as e:
-        await _safe_send(context, chat.id, f"أ¢â€Œإ’ withdraw failed: {e!r}")
+        await _safe_send(context, chat.id, f"ط·آ£ط¢آ¢ط£آ¢أ¢â€ڑآ¬ط¥â€™ط·آ¥أ¢â‚¬â„¢ withdraw failed: {e!r}")
 
 
 async def cmd_withdrawals(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -275,7 +275,7 @@ async def cmd_withdrawals(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await _safe_send(context, chat.id, "No withdrawals yet.")
         return
 
-    lines = ["ظ‹ع؛عˆآ¦ Your withdrawals (last 5)"]
+    lines = ["ط·آ¸أ¢â‚¬آ¹ط·آ¹ط·â€؛ط·آ¹ط«â€ ط·آ¢ط¢آ¦ Your withdrawals (last 5)"]
     for r in rows:
         lines.append(f"- {r['withdrawal_id']} | {r['status']} | MANH={r['amount_manh']} | to={r['target_ton_address']}")
     await _safe_send(context, chat.id, "\n".join(lines))
@@ -284,16 +284,16 @@ async def cmd_withdrawals(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 def _menu_keyboard() -> InlineKeyboardMarkup:
     rows = [
-        [InlineKeyboardButton("âœ… Opt-in", callback_data="m:optin"),
-         InlineKeyboardButton("ًںڑ« Opt-out", callback_data="m:optout")],
-        [InlineKeyboardButton("ًں’° MANH Balance", callback_data="m:bal"),
-         InlineKeyboardButton("ًںڈ† LB Daily", callback_data="m:lbd")],
-        [InlineKeyboardButton("ًںڈ† LB Weekly", callback_data="m:lbw")],
-        [InlineKeyboardButton("ًں§¾ Buy MANH (10)", callback_data="p:inv:10"),
-         InlineKeyboardButton("ًں“œ My Invoices", callback_data="p:inv:list")],
-        [InlineKeyboardButton("ًں”„ Poll Confirm", callback_data="p:poll")],
-        [InlineKeyboardButton("ًں©؛ DB Ping", callback_data="d:db"),
-         InlineKeyboardButton("ًں“Œ Alembic", callback_data="d:alembic")],
+        [InlineKeyboardButton("ط£آ¢ط¥â€œأ¢â‚¬آ¦ Opt-in", callback_data="m:optin"),
+         InlineKeyboardButton("ط¸â€¹ط¹ط›ط¹â€کط¢آ« Opt-out", callback_data="m:optout")],
+        [InlineKeyboardButton("ط¸â€¹ط¹ط›أ¢â‚¬â„¢ط¢آ° MANH Balance", callback_data="m:bal"),
+         InlineKeyboardButton("ط¸â€¹ط¹ط›ط¹ث†أ¢â‚¬آ  LB Daily", callback_data="m:lbd")],
+        [InlineKeyboardButton("ط¸â€¹ط¹ط›ط¹ث†أ¢â‚¬آ  LB Weekly", callback_data="m:lbw")],
+        [InlineKeyboardButton("ط¸â€¹ط¹ط›ط¢آ§ط¢آ¾ Buy MANH (10)", callback_data="p:inv:10"),
+         InlineKeyboardButton("ط¸â€¹ط¹ط›أ¢â‚¬إ“ط¥â€œ My Invoices", callback_data="p:inv:list")],
+        [InlineKeyboardButton("ط¸â€¹ط¹ط›أ¢â‚¬â€Œأ¢â‚¬â€چ Poll Confirm", callback_data="p:poll")],
+        [InlineKeyboardButton("ط¸â€¹ط¹ط›ط¢آ©ط·â€؛ DB Ping", callback_data="d:db"),
+         InlineKeyboardButton("ط¸â€¹ط¹ط›أ¢â‚¬إ“ط¥â€™ Alembic", callback_data="d:alembic")],
     ]
     return InlineKeyboardMarkup(rows)
 
@@ -301,9 +301,9 @@ async def cmd_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat = getattr(update, "effective_chat", None)
     if not chat:
         return
-    await _safe_send(context, chat.id, "ًں§ھ Diagnostics Menu (telegram-guardian)\nChoose an action:",)
+    await _safe_send(context, chat.id, "ط¸â€¹ط¹ط›ط¢آ§ط¹آ¾ Diagnostics Menu (telegram-guardian)\nChoose an action:",)
     try:
-        await context.bot.send_message(chat_id=chat.id, text="ًں‘‡", reply_markup=_menu_keyboard())
+        await context.bot.send_message(chat_id=chat.id, text="ط¸â€¹ط¹ط›أ¢â‚¬ع©أ¢â‚¬طŒ", reply_markup=_menu_keyboard())
     except Exception as e:
         _log(f"MENU send error: {e!r}")
 
@@ -352,10 +352,10 @@ async def _show_leaderboard(context: ContextTypes.DEFAULT_TYPE, chat_id: int, sc
     if not rows:
         await _safe_send(context, chat_id, f"Leaderboard ({scope}) is empty right now.")
         return
-    lines = [f"ًںڈ† MANH Leaderboard ({scope}) {bk}"]
+    lines = [f"ط¸â€¹ط¹ط›ط¹ث†أ¢â‚¬آ  MANH Leaderboard ({scope}) {bk}"]
     for i, r in enumerate(rows, start=1):
         name = r.get("username") or str(r.get("user_id"))
-        lines.append(f"{i}. {name} â€” {r.get('total_manh')}")
+        lines.append(f"{i}. {name} ط£آ¢أ¢â€ڑآ¬أ¢â‚¬â€Œ {r.get('total_manh')}")
     await _safe_send(context, chat_id, "\n".join(lines))
 
 async def on_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -378,12 +378,12 @@ async def on_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     # ---- MANH ----
     if data == "m:optin":
         await _with_db(lambda db: set_opt_in(db, uid, True))
-        await _safe_send(context, chat.id, "âœ… Opt-in enabled. You are now on the MANH leaderboard.")
+        await _safe_send(context, chat.id, "ط£آ¢ط¥â€œأ¢â‚¬آ¦ Opt-in enabled. You are now on the MANH leaderboard.")
         return
 
     if data == "m:optout":
         await _with_db(lambda db: set_opt_in(db, uid, False))
-        await _safe_send(context, chat.id, "âœ… Opt-out enabled. You are no longer on the MANH leaderboard.")
+        await _safe_send(context, chat.id, "ط£آ¢ط¥â€œأ¢â‚¬آ¦ Opt-out enabled. You are no longer on the MANH leaderboard.")
         return
 
     if data == "m:bal":
@@ -407,9 +407,9 @@ async def on_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             return True
         try:
             await _with_db(_ping)
-            await _safe_send(context, chat.id, "ًں©؛ DB Ping: OK")
+            await _safe_send(context, chat.id, "ط¸â€¹ط¹ط›ط¢آ©ط·â€؛ DB Ping: OK")
         except Exception as e:
-            await _safe_send(context, chat.id, f"ًں©؛ DB Ping: FAIL {e!r}")
+            await _safe_send(context, chat.id, f"ط¸â€¹ط¹ط›ط¢آ©ط·â€؛ DB Ping: FAIL {e!r}")
         return
 
     if data == "d:alembic":
@@ -419,9 +419,9 @@ async def on_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             return r[0] if r else "NONE"
         try:
             v = await _with_db(_ver)
-            await _safe_send(context, chat.id, f"ًں“Œ Alembic: {v}")
+            await _safe_send(context, chat.id, f"ط¸â€¹ط¹ط›أ¢â‚¬إ“ط¥â€™ Alembic: {v}")
         except Exception as e:
-            await _safe_send(context, chat.id, f"ًں“Œ Alembic: FAIL {e!r}")
+            await _safe_send(context, chat.id, f"ط¸â€¹ط¹ط›أ¢â‚¬إ“ط¥â€™ Alembic: FAIL {e!r}")
         return
 
     # ---- PAYMENTS ----
@@ -458,14 +458,14 @@ async def on_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         if not ton_addr:
             ton_addr = "TON_TREASURY_ADDRESS_MISSING"
         msg = (
-            "ًں§¾ MANH Invoice created\n"
+            "ط¸â€¹ط¹ط›ط¢آ§ط¢آ¾ MANH Invoice created\n"
             f"ILS: {inv.get('ils_amount')}\n"
             f"TON: {inv.get('ton_amount')}\n"
             f"MANH: {inv.get('manh_amount')}\n"
             f"To: {ton_addr}\n"
             f"Comment: {inv.get('comment')}\n"
             f"Status: {inv.get('status')}\n"
-            "After paying, press ًں”„ Poll Confirm."
+            "After paying, press ط¸â€¹ط¹ط›أ¢â‚¬â€Œأ¢â‚¬â€چ Poll Confirm."
         )
         await _safe_send(context, chat.id, msg)
         return
@@ -480,10 +480,10 @@ async def on_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             return
 
         if not rows:
-            await _safe_send(context, chat.id, "ًں“œ No invoices yet.")
+            await _safe_send(context, chat.id, "ط¸â€¹ط¹ط›أ¢â‚¬إ“ط¥â€œ No invoices yet.")
             return
 
-        lines = ["ًں“œ Your last invoices:"]
+        lines = ["ط¸â€¹ط¹ط›أ¢â‚¬إ“ط¥â€œ Your last invoices:"]
         for r in rows:
             lines.append(f"- {r.get('invoice_id')} | {r.get('status')} | ILS={r.get('ils_amount')} TON={r.get('ton_amount')}")
         await _safe_send(context, chat.id, "\n".join(lines))
@@ -505,7 +505,7 @@ async def on_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
             await _safe_send(context, chat.id, f"Poll failed: {e!r}")
             return
 
-        await _safe_send(context, chat.id, f"ًں”„ Poll result: {res}")
+        await _safe_send(context, chat.id, f"ط¸â€¹ط¹ط›أ¢â‚¬â€Œأ¢â‚¬â€چ Poll result: {res}")
         return
 
     await _safe_send(context, chat.id, f"Unknown action: {data}")
