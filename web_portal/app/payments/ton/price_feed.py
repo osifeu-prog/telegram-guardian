@@ -25,15 +25,12 @@ def _provider() -> str:
 def _manual_ton_ils() -> Decimal:
     v = (os.getenv("TON_ILS_MANUAL") or "").strip()
     if not v:
-        # safe default: force user to set it if provider=manual
         raise RuntimeError("TON_ILS_MANUAL missing (set PRICE_FEED_PROVIDER=manual and TON_ILS_MANUAL=...)")
-    if v is None:
-        raise RuntimeError("price_feed: missing numeric value (None)")
-    s = str(v).strip().replace(",", ".")
-    if not s:
-        raise RuntimeError("price_feed: empty numeric value")
+    v = v.replace(",", ".")
     try:
-        return Decimal(s)
+        return Decimal(v)
+    except Exception:
+        raise RuntimeError(f"bad decimal value={v!r}")
     except InvalidOperation as e:
         raise RuntimeError(f"price_feed: bad decimal value={s!r}") from e
 def get_ton_ils_cached(ttl_sec: int = 120) -> PriceQuote:
@@ -70,16 +67,10 @@ def get_ton_ils_cached(ttl_sec: int = 120) -> PriceQuote:
     raise RuntimeError(f"Unsupported PRICE_FEED_PROVIDER={prov!r}")
 
 # ---- compatibility export (bot/menu expects get_price_quote) ----
-def get_price_quote():
+def get_price_quote() -> PriceQuote:
     """
-    Compatibility wrapper.
-    Returns an object/dict with fields: ton_ils, source
+    Returns a PriceQuote with fields: ton_ils, ts, source
+    Provider controlled via PRICE_FEED_PROVIDER: manual|coingecko (default coingecko)
+    manual needs TON_ILS_MANUAL (number, e.g. 12.34)
     """
-    # Try to call project-native functions if present
-    if "fetch_price_quote" in globals():
-        return fetch_price_quote()
-    if "get_quote" in globals():
-        return get_quote()
-    if "get_ton_ils_quote" in globals():
-        return get_ton_ils_quote()
-    raise ImportError("get_price_quote is not implemented (no underlying quote function found)")
+    return get_ton_ils_cached(ttl_sec=120)
