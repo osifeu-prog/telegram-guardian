@@ -14,6 +14,41 @@ from .payments.ton.price_feed import get_ton_ils_cached
 from .payments.ton.service import create_invoice, list_invoices, create_withdrawal_request, list_withdrawals
 from .manh.storage import get_db
 from .manh.service import set_opt_in, get_balance, leaderboard
+
+async def _safe_send(context, chat_id: int, text: str, reply_markup=None) -> None:
+    """
+    Safe sender:
+    - retries
+    - splits long texts to avoid Telegram 'Message is too long'
+    - keeps reply_markup only on first chunk
+    """
+    if text is None:
+        return
+
+    MAX_CHUNK = 3500  # keep margin under 4096
+    s = str(text)
+
+    chunks = []
+    while len(s) > MAX_CHUNK:
+        cut = s.rfind("\n", 0, MAX_CHUNK)
+        if cut < 0:
+            cut = MAX_CHUNK
+        chunks.append(s[:cut])
+        s = s[cut:].lstrip("\n")
+    chunks.append(s)
+
+    for idx, part in enumerate(chunks):
+        rm = reply_markup if idx == 0 else None
+        for attempt in range(1, 4):
+            try:
+                await context.bot.send_message(chat_id=chat_id, text=part, reply_markup=rm)
+                break
+            except Exception as e:
+                _log(f"TG_SEND retry={attempt}/3 err={e!r}")
+                if attempt == 3:
+                    raise
+
+
 def _log(msg: str) -> None:
     print(msg, flush=True)
 
@@ -324,6 +359,40 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     )
     await _safe_send(context, chat.id, txt)
 
+
+
+async def cmd_chatid(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat = getattr(update, "effective_chat", None)
+    if not chat:
+        return
+    user = getattr(update, "effective_user", None)
+    uid = getattr(user, "id", None)
+    lang = _get_lang(int(uid)) if uid is not None else "he"
+    await _safe_send(context, chat.id, f"chat_id={chat.id}\nuser_id={uid}\nlang={lang}")
+
+async def cmd_all(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    chat = getattr(update, "effective_chat", None)
+    if not chat:
+        return
+    lines = [
+        "/start",
+        "/menu",
+        "/help",
+        "/whoami",
+        "/chatid",
+        "/all",
+        "/optin",
+        "/optout",
+        "/manh",
+        "/leaderboard daily",
+        "/leaderboard weekly",
+        "/buy",
+        "/invoices",
+        "/withdraw",
+        "/withdrawals",
+    ]
+    await _safe_send(context, chat.id, "Commands:\n" + "\n".join(lines))
+
 async def _with_db(fn):
     it = get_db()
     db = next(it)
@@ -508,6 +577,50 @@ async def on_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -
 
     await _safe_send(context, chat.id, f"Unknown action: {data}")
 
+
+
+async def on_menu_callback_v2(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    q = getattr(update, "callback_query", None)
+    if not q:
+        return
+
+    data = getattr(q, "data", "") or ""
+    msg = getattr(q, "message", None)
+    chat = getattr(msg, "chat", None) if msg is not None else None
+    chat_id = getattr(chat, "id", None)
+
+    user = getattr(update, "effective_user", None)
+    uid = getattr(user, "id", None)
+    lang = _get_lang(int(uid)) if uid is not None else "he"
+
+    try:
+        await q.answer()
+        if chat_id is None:
+            _log(f"MENU callback no chat_id; data={data!r}")
+            return
+
+        if data == "m:db":
+            try:
+                await _with_db(lambda db: db.execute(text("SELECT 1")).fetchone())
+                await _safe_send(context, chat_id, t(lang, "db.ok"))
+            except Exception as e:
+                await _safe_send(context, chat_id, f"DB Ping failed: {e!r}")
+            return
+
+        if data == "m:alembic":
+            try:
+                ver = await _with_db(lambda db: db.execute(text("SELECT version_num FROM alembic_version")).fetchone())
+                v = ver[0] if ver else "unknown"
+                await _safe_send(context, chat_id, t(lang, "alembic.ver", ver=v))
+            except Exception as e:
+                await _safe_send(context, chat_id, f"Alembic failed: {e!r}")
+            return
+
+        await _safe_send(context, chat_id, f"Unknown action: {data}")
+
+    except Exception as e:
+        _log(f"MENU callback error: {e!r}")
+
 def tg_get_app() -> Application:
     global _APP
     if _APP is not None:
@@ -525,7 +638,9 @@ def tg_get_app() -> Application:
     app.add_handler(CommandHandler("menu", cmd_menu))
     app.add_handler(CommandHandler("buy", cmd_buy))
     app.add_handler(CommandHandler("help", cmd_help))
-    app.add_handler(CallbackQueryHandler(on_menu_callback, pattern="^(m:|p:|d:)"))
+    app.add_handler(CommandHandler("chatid", cmd_chatid))
+    app.add_handler(CommandHandler("all", cmd_all))
+    app.add_handler(CallbackQueryHandler(on_menu_callback_v2, pattern="^(m:|p:|d:)"))
     app.add_handler(CommandHandler("optin", cmd_optin))
     app.add_handler(CommandHandler("optout", cmd_optout))
     app.add_handler(CommandHandler("manh", cmd_manh))
