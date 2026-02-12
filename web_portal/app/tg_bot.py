@@ -15,59 +15,6 @@ from .payments.ton.service import create_invoice, list_invoices, create_withdraw
 from .manh.storage import get_db
 from .manh.service import set_opt_in, get_balance, leaderboard
 
-
-async def _safe_send(context, chat_id: int, text: str, reply_markup=None) -> None:
-    """
-    Safe sender:
-    - retries
-    - splits long texts using UTF-16 unit budget (Telegram limit)
-    - keeps reply_markup only on first chunk
-    """
-    if text is None:
-        return
-
-    def u16_len(x: str) -> int:
-        # number of UTF-16 code units (Telegram counts roughly like this)
-        return len(x.encode("utf-16-le")) // 2
-
-    # Keep a conservative ceiling (Telegram hard is 4096 UTF-16 units)
-    MAX_U16 = 1500
-
-    s = str(text)
-    chunks = []
-    while u16_len(s) > MAX_U16:
-        # try split at newline within budget
-        lo, hi = 0, len(s)
-        # binary search cut by UTF-16 size
-        l, r = 1, len(s)
-        best = 1
-        while l <= r:
-            mid = (l + r) // 2
-            if u16_len(s[:mid]) <= MAX_U16:
-                best = mid
-                l = mid + 1
-            else:
-                r = mid - 1
-
-        cut = s.rfind("\n", 0, best)
-        if cut < 1:
-            cut = best
-        chunks.append(s[:cut])
-        s = s[cut:].lstrip("\n")
-    chunks.append(s)
-
-    for idx, part in enumerate(chunks):
-        rm = reply_markup if idx == 0 else None
-        for attempt in range(1, 4):
-            try:
-                await context.bot.send_message(chat_id=chat_id, text=part, reply_markup=rm)
-                break
-            except Exception as e:
-                _log(f"TG_SEND retry={attempt}/3 err={e!r}")
-                if attempt == 3:
-                    raise
-
-
 async def _safe_send(context, chat_id: int, text: str, reply_markup=None) -> None:
     """
     Safe sender:
@@ -652,7 +599,7 @@ async def on_menu_callback_v2(update: Update, context: ContextTypes.DEFAULT_TYPE
             _log(f"MENU callback no chat_id; data={data!r}")
             return
 
-        if data == "m:db":
+        if data in ("m:db","d:db"):
             try:
                 await _with_db(lambda db: db.execute(text("SELECT 1")).fetchone())
                 await _safe_send(context, chat_id, t(lang, "db.ok"))
@@ -660,7 +607,7 @@ async def on_menu_callback_v2(update: Update, context: ContextTypes.DEFAULT_TYPE
                 await _safe_send(context, chat_id, f"DB Ping failed: {e!r}")
             return
 
-        if data == "m:alembic":
+        if data in ("m:alembic","d:alembic"):
             try:
                 ver = await _with_db(lambda db: db.execute(text("SELECT version_num FROM alembic_version")).fetchone())
                 v = ver[0] if ver else "unknown"
