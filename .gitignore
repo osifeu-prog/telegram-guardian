@@ -59,3 +59,17 @@ __pycache__/
 *.pyc
 .expo/
 lib/
+
+# Python caches
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+
+# Local backups
+*.bak
+*.bak.*
+web_portal/app/*.bak.*
+
