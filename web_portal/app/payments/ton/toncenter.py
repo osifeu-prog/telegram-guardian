@@ -38,3 +38,19 @@ class TonCenter:
         if not data.get("ok"):
             raise RuntimeError(f"toncenter not ok: {data!r}")
         return data.get("result") or []
+
+# ---- compatibility export (bot/menu expects fetch_transactions) ----
+def fetch_transactions(*args, **kwargs):
+    """
+    Compatibility wrapper.
+    Expected to return list[dict] with at least:
+    - 'to' (dest address)
+    - 'comment' (payload/comment)
+    - 'amount_ton' or 'amount' (numeric)
+    - 'ts' (timestamp)
+    """
+    if "get_transactions" in globals():
+        return get_transactions(*args, **kwargs)
+    if "list_transactions" in globals():
+        return list_transactions(*args, **kwargs)
+    raise ImportError("fetch_transactions is not implemented (no underlying tx function found)")

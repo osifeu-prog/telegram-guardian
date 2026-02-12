@@ -68,3 +68,18 @@ def get_ton_ils_cached(ttl_sec: int = 120) -> PriceQuote:
         return q
 
     raise RuntimeError(f"Unsupported PRICE_FEED_PROVIDER={prov!r}")
+
+# ---- compatibility export (bot/menu expects get_price_quote) ----
+def get_price_quote():
+    """
+    Compatibility wrapper.
+    Returns an object/dict with fields: ton_ils, source
+    """
+    # Try to call project-native functions if present
+    if "fetch_price_quote" in globals():
+        return fetch_price_quote()
+    if "get_quote" in globals():
+        return get_quote()
+    if "get_ton_ils_quote" in globals():
+        return get_ton_ils_quote()
+    raise ImportError("get_price_quote is not implemented (no underlying quote function found)")
