@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException
@@ -20,6 +20,19 @@ from .service import (
 
 router = APIRouter(prefix="/pay", tags=["payments"])
 
+def _parse_ils_amount(raw: str) -> Decimal:
+    s = (raw or "").strip()
+    s = s.replace(",", ".")
+    if not s:
+        raise HTTPException(status_code=400, detail="ils_amount is required")
+    try:
+        v = Decimal(s)
+    except InvalidOperation:
+        raise HTTPException(status_code=400, detail="ils_amount must be a valid decimal")
+    if v <= 0:
+        raise HTTPException(status_code=400, detail="ils_amount must be > 0")
+    return v.quantize(Decimal("0.01"))
+
 
 @router.post("/invoice")
 def pay_create_invoice(
@@ -29,7 +42,7 @@ def pay_create_invoice(
     db: Session = Depends(get_db),
 ):
     try:
-        amt = Decimal(ils_amount)
+        amt = _parse_ils_amount(ils_amount)
         q = get_ton_ils_cached()
         inv = create_invoice(db, user_id=user_id, username=username, ils_amount=amt, ton_ils_rate=q.ton_ils)
         return {"ok": True, "price": {"ton_ils": str(q.ton_ils), "source": q.source}, "invoice": inv.__dict__}
