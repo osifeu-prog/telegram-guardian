@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import time
 from dataclasses import dataclass
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 import httpx
 
@@ -27,9 +27,15 @@ def _manual_ton_ils() -> Decimal:
     if not v:
         # safe default: force user to set it if provider=manual
         raise RuntimeError("TON_ILS_MANUAL missing (set PRICE_FEED_PROVIDER=manual and TON_ILS_MANUAL=...)")
-    return Decimal(v)
-
-
+    if v is None:
+        raise RuntimeError("price_feed: missing numeric value (None)")
+    s = str(v).strip().replace(",", ".")
+    if not s:
+        raise RuntimeError("price_feed: empty numeric value")
+    try:
+        return Decimal(s)
+    except InvalidOperation as e:
+        raise RuntimeError(f"price_feed: bad decimal value={s!r}") from e
 def get_ton_ils_cached(ttl_sec: int = 120) -> PriceQuote:
     global _CACHE
     now = time.time()
