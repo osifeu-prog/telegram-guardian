@@ -1,5 +1,7 @@
+from app.utils.telegram_helpers import safe_send_message
 import os
 
+from app.utils.telegram_helpers import safe_send_message
 import asyncio
 
 from typing import Any, Optional
@@ -30,6 +32,181 @@ from .manh.storage import get_db
 
 from .manh.service import set_opt_in, get_balance, leaderboard
 
+
+
+
+
+
+
+
+async def _safe_send(context, chat_id: int, text: str, reply_markup=None) -> None:
+    """
+    Safe sender:
+    - retries
+    - splits long texts to avoid Telegram 'Message is too long'
+    - keeps reply_markup only on first chunk
+    """
+    if text is None:
+        return
+
+    MAX_CHUNK = 3500  # keep margin under 4096
+    s = str(text)
+
+    chunks = []
+    while len(s) > MAX_CHUNK:
+        cut = s.rfind("\n", 0, MAX_CHUNK)
+        if cut < 0:
+            cut = MAX_CHUNK
+        chunks.append(s[:cut])
+        s = s[cut:].lstrip("\n")
+    chunks.append(s)
+
+    for idx, part in enumerate(chunks):
+        rm = reply_markup if idx == 0 else None
+        for attempt in range(1, 4):
+            try:
+                await safe_send_message(chat_id=chat_id, text=part, reply_markup=rm)
+                break
+            except Exception as e:
+                _log(f"TG_SEND retry={attempt}/3 err={e!r}")
+                if attempt == 3:
+                    raise
+
+
+async def _safe_send(context, chat_id: int, text: str, reply_markup=None) -> None:
+    """
+    Safe sender:
+    - retries
+    - splits long texts to avoid Telegram 'Message is too long'
+    - keeps reply_markup only on first chunk
+    """
+    if text is None:
+        return
+
+    MAX_CHUNK = 3500  # keep margin under 4096
+    s = str(text)
+
+    chunks = []
+    while len(s) > MAX_CHUNK:
+        cut = s.rfind("\n", 0, MAX_CHUNK)
+        if cut < 0:
+            cut = MAX_CHUNK
+        chunks.append(s[:cut])
+        s = s[cut:].lstrip("\n")
+    chunks.append(s)
+
+    for idx, part in enumerate(chunks):
+        rm = reply_markup if idx == 0 else None
+        for attempt in range(1, 4):
+            try:
+                await safe_send_message(chat_id=chat_id, text=part, reply_markup=rm)
+                break
+            except Exception as e:
+                _log(f"TG_SEND retry={attempt}/3 err={e!r}")
+                if attempt == 3:
+                    raise
+
+
+async def _safe_send(context, chat_id: int, text: str, reply_markup=None) -> None:
+    """
+    Safe sender:
+    - retries
+    - splits long texts to avoid Telegram 'Message is too long'
+    - keeps reply_markup only on first chunk
+    """
+    if text is None:
+        return
+
+    MAX_CHUNK = 3500  # keep margin under 4096
+    s = str(text)
+
+    chunks = []
+    while len(s) > MAX_CHUNK:
+        cut = s.rfind("\n", 0, MAX_CHUNK)
+        if cut < 0:
+            cut = MAX_CHUNK
+        chunks.append(s[:cut])
+        s = s[cut:].lstrip("\n")
+    chunks.append(s)
+
+    for idx, part in enumerate(chunks):
+        rm = reply_markup if idx == 0 else None
+        for attempt in range(1, 4):
+            try:
+                await safe_send_message(chat_id=chat_id, text=part, reply_markup=rm)
+                break
+            except Exception as e:
+                _log(f"TG_SEND retry={attempt}/3 err={e!r}")
+                if attempt == 3:
+                    raise
+
+
+async def _safe_send(context, chat_id: int, text: str, reply_markup=None) -> None:
+    """
+    Safe sender:
+    - retries
+    - splits long texts to avoid Telegram 'Message is too long'
+    - keeps reply_markup only on first chunk
+    """
+    if text is None:
+        return
+
+    MAX_CHUNK = 3500  # keep margin under 4096
+    s = str(text)
+
+    chunks = []
+    while len(s) > MAX_CHUNK:
+        cut = s.rfind("\n", 0, MAX_CHUNK)
+        if cut < 0:
+            cut = MAX_CHUNK
+        chunks.append(s[:cut])
+        s = s[cut:].lstrip("\n")
+    chunks.append(s)
+
+    for idx, part in enumerate(chunks):
+        rm = reply_markup if idx == 0 else None
+        for attempt in range(1, 4):
+            try:
+                await safe_send_message(chat_id=chat_id, text=part, reply_markup=rm)
+                break
+            except Exception as e:
+                _log(f"TG_SEND retry={attempt}/3 err={e!r}")
+                if attempt == 3:
+                    raise
+
+
+async def _safe_send(context, chat_id: int, text: str, reply_markup=None) -> None:
+    """
+    Safe sender:
+    - retries
+    - splits long texts to avoid Telegram 'Message is too long'
+    - keeps reply_markup only on first chunk
+    """
+    if text is None:
+        return
+
+    MAX_CHUNK = 3500  # keep margin under 4096
+    s = str(text)
+
+    chunks = []
+    while len(s) > MAX_CHUNK:
+        cut = s.rfind("\n", 0, MAX_CHUNK)
+        if cut < 0:
+            cut = MAX_CHUNK
+        chunks.append(s[:cut])
+        s = s[cut:].lstrip("\n")
+    chunks.append(s)
+
+    for idx, part in enumerate(chunks):
+        rm = reply_markup if idx == 0 else None
+        for attempt in range(1, 4):
+            try:
+                await safe_send_message(chat_id=chat_id, text=part, reply_markup=rm)
+                break
+            except Exception as e:
+                _log(f"TG_SEND retry={attempt}/3 err={e!r}")
+                if attempt == 3:
+                    raise
 
 
 async def _safe_send(context, chat_id: int, text: str, reply_markup=None) -> None:
@@ -84,7 +261,7 @@ async def _safe_send(context, chat_id: int, text: str, reply_markup=None) -> Non
 
             try:
 
-                await context.bot.send_message(chat_id=chat_id, text=part, reply_markup=rm)
+                await safe_send_message(chat_id=chat_id, text=part, reply_markup=rm)
 
                 break
 
@@ -154,7 +331,7 @@ async def _safe_send(context: ContextTypes.DEFAULT_TYPE, chat_id: int, text: str
 
         try:
 
-            await context.bot.send_message(chat_id=chat_id, text=text)
+            await safe_send_message(chat_id=chat_id, text=text)
 
             return
 
@@ -682,7 +859,7 @@ async def cmd_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     try:
 
-        await context.bot.send_message(chat_id=chat.id, text=t(lang, "menu.title"), reply_markup=_menu_keyboard(lang))
+        await safe_send_message(chat_id=chat.id, text=t(lang, "menu.title"), reply_markup=_menu_keyboard(lang))
 
     except Exception as e:
 
@@ -1480,3 +1657,146 @@ def _set_lang(user_id: int, lang: str) -> None:
 
     _LANG_MEM[int(user_id)] = lang
 
+import logging
+
+
+
+
+async def _safe_send(context, chat_id: int, text: str, reply_markup=None) -> None:
+    """
+    Safe sender:
+    - retries
+    - splits long texts to avoid Telegram 'Message is too long'
+    - keeps reply_markup only on first chunk
+    """
+    if text is None:
+        return
+
+    MAX_CHUNK = 3500  # keep margin under 4096
+    s = str(text)
+
+    chunks = []
+    while len(s) > MAX_CHUNK:
+        cut = s.rfind("\n", 0, MAX_CHUNK)
+        if cut < 0:
+            cut = MAX_CHUNK
+        chunks.append(s[:cut])
+        s = s[cut:].lstrip("\n")
+    chunks.append(s)
+
+    for idx, part in enumerate(chunks):
+        rm = reply_markup if idx == 0 else None
+        for attempt in range(1, 4):
+            try:
+                await context.bot.send_message(chat_id=chat_id, text=part, reply_markup=rm)
+                break
+            except Exception as e:
+                _log(f"TG_SEND retry={attempt}/3 err={e!r}")
+                if attempt == 3:
+                    raise
+
+
+async def _safe_send(context, chat_id: int, text: str, reply_markup=None) -> None:
+    """
+    Safe sender:
+    - retries
+    - splits long texts to avoid Telegram 'Message is too long'
+    - keeps reply_markup only on first chunk
+    """
+    if text is None:
+        return
+
+    MAX_CHUNK = 3500  # keep margin under 4096
+    s = str(text)
+
+    chunks = []
+    while len(s) > MAX_CHUNK:
+        cut = s.rfind("\n", 0, MAX_CHUNK)
+        if cut < 0:
+            cut = MAX_CHUNK
+        chunks.append(s[:cut])
+        s = s[cut:].lstrip("\n")
+    chunks.append(s)
+
+    for idx, part in enumerate(chunks):
+        rm = reply_markup if idx == 0 else None
+        for attempt in range(1, 4):
+            try:
+                await safe_send_message(chat_id=chat_id, text=part, reply_markup=rm)
+                break
+            except Exception as e:
+                _log(f"TG_SEND retry={attempt}/3 err={e!r}")
+                if attempt == 3:
+                    raise
+
+
+async def _safe_send(context, chat_id: int, text: str, reply_markup=None) -> None:
+    """
+    Safe sender:
+    - retries
+    - splits long texts to avoid Telegram 'Message is too long'
+    - keeps reply_markup only on first chunk
+    """
+    if text is None:
+        return
+
+    MAX_CHUNK = 3500  # keep margin under 4096
+    s = str(text)
+
+    chunks = []
+    while len(s) > MAX_CHUNK:
+        cut = s.rfind("\n", 0, MAX_CHUNK)
+        if cut < 0:
+            cut = MAX_CHUNK
+        chunks.append(s[:cut])
+        s = s[cut:].lstrip("\n")
+    chunks.append(s)
+
+    for idx, part in enumerate(chunks):
+        rm = reply_markup if idx == 0 else None
+        for attempt in range(1, 4):
+            try:
+                await safe_send_message(chat_id=chat_id, text=part, reply_markup=rm)
+                break
+            except Exception as e:
+                _log(f"TG_SEND retry={attempt}/3 err={e!r}")
+                if attempt == 3:
+                    raise
+
+
+async def _safe_send(context, chat_id: int, text: str, reply_markup=None) -> None:
+    """
+    Safe sender:
+    - retries
+    - splits long texts to avoid Telegram 'Message is too long'
+    - keeps reply_markup only on first chunk
+    """
+    if text is None:
+        return
+
+    MAX_CHUNK = 3500  # keep margin under 4096
+    s = str(text)
+
+    chunks = []
+    while len(s) > MAX_CHUNK:
+        cut = s.rfind("\n", 0, MAX_CHUNK)
+        if cut < 0:
+            cut = MAX_CHUNK
+        chunks.append(s[:cut])
+        s = s[cut:].lstrip("\n")
+    chunks.append(s)
+
+    for idx, part in enumerate(chunks):
+        rm = reply_markup if idx == 0 else None
+        for attempt in range(1, 4):
+            try:
+                await safe_send_message(chat_id=chat_id, text=part, reply_markup=rm)
+                break
+            except Exception as e:
+                _log(f"TG_SEND retry={attempt}/3 err={e!r}")
+                if attempt == 3:
+                    raise
+
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
