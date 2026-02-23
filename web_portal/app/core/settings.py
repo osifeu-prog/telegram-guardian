@@ -39,9 +39,21 @@ class Settings(BaseSettings):
 
     @field_validator("ADMIN_IDS", mode="before")
     def parse_admin_ids(cls, v):
+        # If it's already a list, return as is (after converting each item to int)
+        if isinstance(v, list):
+            return [int(x) for x in v]
+        # If it's a single integer, wrap it in a list
+        if isinstance(v, int):
+            return [v]
+        # If it's a string, split by commas and convert each to int
         if isinstance(v, str):
+            # Remove brackets if present (sometimes env vars include [])
+            v = v.strip().strip('[]')
+            if not v:
+                return []
             return [int(x.strip()) for x in v.split(",") if x.strip()]
-        return v
+        # Fallback: return empty list
+        return []
 
     # Build info
     APP_BUILD_STAMP: str = ""
