@@ -1,4 +1,4 @@
-﻿from fastapi import APIRouter, Request, HTTPException, Query
+from fastapi import APIRouter, Request, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.database.models import User, Invoice
 from app.database.db import get_db
@@ -7,10 +7,9 @@ router = APIRouter()
 
 @router.get("/api/user_data")
 async def get_user_data(user_id: int = Query(None, description="Telegram user ID"), request: Request = None):
-    # אם לא התקבל ב-Query, ננסה לשלוף מה-request body או query string
+    # If not provided as query parameter, try to get from request query string
     if user_id is None and request:
         try:
-            # נסה מה-query string
             user_id = request.query_params.get("user_id")
             if user_id:
                 user_id = int(user_id)
