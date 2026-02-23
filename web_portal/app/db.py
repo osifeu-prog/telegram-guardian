@@ -1,16 +1,21 @@
 from __future__ import annotations
+
 import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from app.core.settings import settings
 
 logger = logging.getLogger(__name__)
+
 DATABASE_URL = settings.DATABASE_URL
+
 
 class Base(DeclarativeBase):
     pass
 
+
 _engine = None
+
 
 def _normalize_db_url(url: str) -> str:
     url = (url or "").strip()
@@ -20,21 +25,30 @@ def _normalize_db_url(url: str) -> str:
         url = url.replace("postgresql://", "postgresql+psycopg://", 1)
     return url
 
+
 def get_engine():
     global _engine
     if _engine is None:
         url = _normalize_db_url(DATABASE_URL)
         if not url:
             raise RuntimeError("Missing DATABASE_URL")
+        log_url = url.split('@')[0] if '@' in url else url
+        logger.debug(f"Creating database engine for URL: {log_url}")
         _engine = create_engine(url, pool_pre_ping=True)
     return _engine
 
+
 engine = get_engine()
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
 def get_db():
+    """Return a database session to be used as a context manager."""
     db = SessionLocal()
     try:
+        logger.debug("Yielding database session")
         yield db
     finally:
+        logger.debug("Closing database session")
         db.close()
