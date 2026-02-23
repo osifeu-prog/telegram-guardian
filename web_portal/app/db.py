@@ -39,19 +39,9 @@ def get_engine():
             raise RuntimeError("Missing DATABASE_URL")
         log_url = url.split('@')[0] if '@' in url else url
         logger.debug(f"Creating database engine for URL: {log_url}")
-<<<<<<< HEAD
         # ב-psycopg3, sslmode נשלט דרך ה-URL בלבד (למשל ?sslmode=disable)
         # לכן אנחנו לא מוסיפים אותו כאן ומשאירים את ה-URL כפי שהוא.
         _engine = create_engine(url, pool_pre_ping=True)
-=======
-        # Force sslmode=disable both in URL and connect_args
-        # First ensure URL has sslmode=disable
-        if "sslmode=" not in url:
-            separator = "&" if "?" in url else "?"
-            url = f"{url}{separator}sslmode=disable"
-            logger.debug(f"Added sslmode=disable to URL: {url.split('@')[0] if '@' in url else url}")
-        _engine = create_engine(url, pool_pre_ping=True, connect_args={"sslmode": "disable"})
->>>>>>> de9e9c243332eee0d9609e6ba5cf6eb1f4448e03
     return _engine
 
 
@@ -68,8 +58,4 @@ def get_db():
         yield db
     finally:
         logger.debug("Closing database session")
-<<<<<<< HEAD
         db.close()
-=======
-        db.close()
->>>>>>> de9e9c243332eee0d9609e6ba5cf6eb1f4448e03
