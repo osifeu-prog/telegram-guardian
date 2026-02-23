@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -14,17 +14,17 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="mb-4">🧪 Telegram Guardian Dashboard</h1>
+        <h1 class="mb-4">?? Telegram Guardian Dashboard</h1>
         <div id="loading" class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
         <div id="content" style="display: none;">
-            <!-- יתרה -->
+            <!-- ???? -->
             <div class="row">
                 <div class="col-md-4">
                     <div class="card text-white bg-primary">
                         <div class="card-body">
-                            <h5 class="card-title">💰 MANH Balance</h5>
+                            <h5 class="card-title">?? MANH Balance</h5>
                             <p class="card-text display-6" id="manh_balance">-</p>
                             <p class="card-text">XP: <span id="xp_points">-</span></p>
                         </div>
@@ -33,16 +33,16 @@
                 <div class="col-md-8">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">📊 Recent Activity</h5>
+                            <h5 class="card-title">?? Recent Activity</h5>
                             <canvas id="balanceChart" style="max-height: 150px;"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- חשבוניות אחרונות -->
+            <!-- ???????? ??????? -->
             <div class="card">
-                <div class="card-header">📄 Last Invoices</div>
+                <div class="card-header">?? Last Invoices</div>
                 <div class="card-body">
                     <table class="table table-sm table-hover">
                         <thead>
@@ -60,9 +60,9 @@
                 </div>
             </div>
 
-            <!-- לוח תוצאות יומי -->
+            <!-- ??? ?????? ???? -->
             <div class="card">
-                <div class="card-header">🏆 Daily Leaderboard</div>
+                <div class="card-header">?? Daily Leaderboard</div>
                 <div class="card-body">
                     <table class="table table-sm table-hover">
                         <thead>
@@ -77,13 +77,13 @@
                 </div>
             </div>
 
-            <!-- פעולות מהירות -->
+            <!-- ?????? ?????? -->
             <div class="row mt-3">
                 <div class="col">
-                    <button class="btn btn-primary" onclick="buyManh(10)">🛒 Buy 10 MANH</button>
-                    <button class="btn btn-success" onclick="optIn()">✅ Opt-in</button>
-                    <button class="btn btn-warning" onclick="optOut()">❌ Opt-out</button>
-                    <button class="btn btn-info" onclick="pollConfirm()">🔎 Poll Confirm</button>
+                    <button class="btn btn-primary" onclick="buyManh(10)">?? Buy 10 MANH</button>
+                    <button class="btn btn-success" onclick="optIn()">? Opt-in</button>
+                    <button class="btn btn-warning" onclick="optOut()">? Opt-out</button>
+                    <button class="btn btn-info" onclick="pollConfirm()">?? Poll Confirm</button>
                 </div>
             </div>
         </div>
@@ -98,7 +98,7 @@
                 document.getElementById('manh_balance').innerText = data.balance?.manh ?? '-';
                 document.getElementById('xp_points').innerText = data.balance?.xp_points ?? '-';
 
-                // טבלת חשבוניות
+                // ???? ????????
                 const invoicesHtml = (data.invoices || []).map(inv => `
                     <tr>
                         <td>${inv.invoice_id || inv.id}</td>
@@ -111,7 +111,7 @@
                 `).join('');
                 document.getElementById('invoicesTable').innerHTML = invoicesHtml;
 
-                // טבלת לידרבורד
+                // ???? ????????
                 const lbHtml = (data.leaderboard || []).map((row, i) => `
                     <tr>
                         <td>${i+1}</td>

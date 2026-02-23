@@ -1,6 +1,6 @@
 import logging
 from telegram import Bot
-from app.config import settings
+from app.core.settings import settings
 
 logger = logging.getLogger(__name__)
 
