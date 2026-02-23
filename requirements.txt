@@ -14,4 +14,5 @@ flask>=3.0.0
 aiohttp
 qrcode[pil]
 httpx
-pydantic-settings==2.3.4
+pydantic==2.10.6
+pydantic-settings==2.7.1
