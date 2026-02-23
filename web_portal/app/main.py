@@ -19,7 +19,7 @@ from fastapi.templating import Jinja2Templates
 
 from sqlalchemy import inspect, text, create_engine
 
-from .config import settings
+from .core.settings import settings
 from .db import engine, get_db, SessionLocal
 from .database.models import Base
 from .tg_bot import (
@@ -53,6 +53,15 @@ def _build_stamp() -> str:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("APP: lifespan startup")
+    
+    # ✅ בדיקת חיבור למסד הנתונים
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+            logger.info("✅ DB connection successful")
+    except Exception as e:
+        logger.error(f"❌ DB connection failed: {e}", exc_info=True)
+    
     # בדיקת קיום טבלאות (ללא מיגרציות)
     try:
         inspector = inspect(engine)
