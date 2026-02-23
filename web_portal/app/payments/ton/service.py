@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session
 from app.manh.service import award_manh
 
 import httpx
-from app.config import settings
+from app.core.settings import settings
 from app.database.models import Invoice, User
 
 def fetch_ton_transactions(address: str, limit: int = 100):
@@ -241,7 +241,7 @@ def poll_and_confirm_invoices(db: Session, treasury_address: str = None) -> dict
     from app.database.models import Invoice, User
 
     if treasury_address is None:
-        from app.config import settings
+        from app.core.settings import settings
         treasury_address = settings.TON_TREASURY_ADDRESS
 
     pending_invoices = db.execute(

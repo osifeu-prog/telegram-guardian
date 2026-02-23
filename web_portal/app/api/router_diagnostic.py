@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
-from app.database.db import get_db
+from app.db import get_db
 from app.database.models import User, Invoice, Withdrawal, ChatId
-from app.config import settings
+from app.core.settings import settings
 import os
 from datetime import datetime
 

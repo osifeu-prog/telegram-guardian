@@ -2,7 +2,7 @@ import os
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from app.database.models import Withdrawal, User
-from app.config import settings
+from app.core.settings import settings
 from datetime import datetime
 
 def create_withdrawal(

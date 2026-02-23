@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 import sys
 import os
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -16,7 +16,7 @@ from app.tg_bot import (
     cmd_poll_confirm, cmd_miniapp, cmd_withdraw, cmd_withdrawals, cmd_chatid,
     cmd_p2p_buy, cmd_sell, cmd_orders, cmd_cancel, cmd_referral, cmd_faq
 )
-from app.config import settings
+from app.core.settings import settings
 
 # Mock Redis
 @pytest.fixture(autouse=True)
