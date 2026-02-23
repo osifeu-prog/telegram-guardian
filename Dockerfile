@@ -13,7 +13,7 @@ ENV PORT=8080
 ARG BUILD_MARKER=dev
 ENV APP_BUILD_STAMP=20260211-131014
 
-COPY web_portal/requirements.txt ./requirements.txt
+COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 # Force install pydantic-settings to ensure it's available
 RUN pip install --no-cache-dir pydantic-settings
