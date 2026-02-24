@@ -34,10 +34,10 @@ def verify_telegram_init_data(init_data: str, bot_token: str, max_age_sec: int =
     return d
 
 def _parse_tg_user(data: dict) -> dict:
-    \"\"\"
+    """
     Extract user data from the verified init data.
     The 'user' field is a JSON string inside the data.
-    \"\"\"
+    """
     user_json = data.get('user', '{}')
     try:
         return json.loads(user_json)
