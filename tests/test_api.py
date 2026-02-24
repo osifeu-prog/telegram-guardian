@@ -1,5 +1,11 @@
-﻿from fastapi.testclient import TestClient
-from app.main import app
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from web_portal.app.database import Base
+from web_portal.app.main import app
+
+# Create tables for test
+engine = create_engine("sqlite:///./test.db")
+Base.metadata.create_all(bind=engine)
 
 client = TestClient(app)
 
