@@ -1,4 +1,4 @@
-??<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -37,7 +37,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <div class="bg-white rounded-lg shadow p-4">
-                <h2 class="text-xl font-semibold mb-2">?? Recent Invoices</h2>
+                <h2 class="text-xl font-semibold mb-2"> Recent Invoices</h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
@@ -56,7 +56,7 @@
             </div>
             
             <div class="bg-white rounded-lg shadow p-4">
-                <h2 class="text-xl font-semibold mb-2">?? Open P2P Orders</h2>
+                <h2 class="text-xl font-semibold mb-2"> Open P2P Orders</h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
@@ -73,7 +73,7 @@
         </div>
 
         <div class="bg-white rounded-lg shadow p-4">
-            <h2 class="text-xl font-semibold mb-2">? Quick Actions</h2>
+            <h2 class="text-xl font-semibold mb-2"> Quick Actions</h2>
             <div class="flex flex-wrap gap-2">
                 <button onclick="tg?.openTelegramLink('https://t.me/MY_NFT_SHOP_bot?start=buy_10')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Buy 10 ILS</button>
                 <button onclick="tg?.openTelegramLink('https://t.me/MY_NFT_SHOP_bot?start=sell_1_2')" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Sell 1 MANH @2 TON</button>
@@ -82,66 +82,72 @@
         </div>
     </div>
 
-        <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Debug Section -->
+    <div class="bg-white rounded-lg shadow p-4 mt-6 max-w-6xl mx-auto">
+        <h2 class="text-xl font-semibold mb-2"> Debug</h2>
+        <div class="flex items-center gap-2">
+            <input type="text" id="manualUserId" placeholder="Enter user ID" class="border rounded px-3 py-2 flex-grow">
+            <button onclick="loadManualUser()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Load Data</button>
+        </div>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        console.log('=== Mini-App Debug ===');
+        // === Mini-App Debug ===
         console.log('window.Telegram:', window.Telegram);
         const tg = window.Telegram?.WebApp;
-        console.log('WebApp object:', tg);
+        let userId = null;
+
+        // ניסיון לזהות משתמש דרך טלגרם
         if (tg) {
             tg.ready();
             tg.expand();
-            tg.expand();
-            console.log('tg.ready() called');
-            console.log('tg.initData:', tg.initData);
             console.log('tg.initDataUnsafe:', tg.initDataUnsafe);
             const user = tg.initDataUnsafe?.user;
-            console.log('user:', user);
-            const userId = user?.id;
-            console.log('userId:', userId);
-            
-            // Update status
-            const statusEl = document.getElementById('tg-status');
-            if (tg) {
-                statusEl.innerText = '? Telegram.WebApp detected. User ID: ' + (userId || 'not found');
-            } else {
-                statusEl.innerText = '? Telegram.WebApp not available';
-            }
-if (userId) {
-                document.getElementById('user-info').innerText = 'User ID: ' + userId;
+            if (user?.id) {
+                userId = user.id;
+                document.getElementById('user-info').innerText = ' Telegram user: ' + userId;
                 loadData(userId);
+            } else if (tg.initData) {
+                // שליחת initData לשרת לקבלת user_id
+                fetch('/api/get_user_id_from_initdata', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ initData: tg.initData })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.user_id) {
+                        userId = data.user_id;
+                        document.getElementById('user-info').innerText = ' Telegram (via initData): ' + userId;
+                        loadData(userId);
+                    }
+                })
+                .catch(err => console.error('initData error:', err));
             } else {
-                document.getElementById('balance').innerText = 'No user ID';
-                document.getElementById('xp').innerText = '?';
-                // Try fallback with initData
-                if (tg.initData) {
-                    fetch('/api/verify_init_data', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ initData: tg.initData })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.user_id) {
-                            userId = data.user_id;
-                            document.getElementById('user-info').innerText = 'User ID: ' + userId;
-                            loadData(userId);
-                        }
-                    })
-                    .catch(err => console.error('Fallback error:', err));
-                }
+                document.getElementById('user-info').innerText = ' Telegram user not identified';
             }
         } else {
-            console.log('Telegram.WebApp not available');
-            document.getElementById('balance').innerText = 'Not in Telegram';
+            document.getElementById('user-info').innerText = ' Running outside Telegram';
         }
 
-        async function loadData(userId) {
+        // טעינת מזהה מ-localStorage (אם קיים)
+        const savedId = localStorage.getItem('telegram_guardian_user_id');
+        if (savedId) {
+            document.getElementById('manualUserId').value = savedId;
+        }
+
+        async function loadData(uid) {
             try {
-                const res = await fetch(`/api/user_data?user_id=${userId}`);
+                const res = await fetch(`/api/user_data?user_id=${uid}`);
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
                 const data = await res.json();
-                document.getElementById('balance').innerText = data.balance_manh || '0';
-                document.getElementById('xp').innerText = data.total_xp || '0';
+                document.getElementById('balance').innerText = data.manh_balance || '0';
+                document.getElementById('xp').innerText = data.xp || '0';
+
+                // הצגת חשבוניות
                 const tbody = document.getElementById('invoices-body');
                 tbody.innerHTML = '';
                 if (data.invoices && data.invoices.length > 0) {
@@ -157,40 +163,22 @@ if (userId) {
                 } else {
                     tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-4">No invoices</td></tr>';
                 }
+
+                // P2P orders (אופציונלי)  אפשר להוסיף אח"כ
             } catch (e) {
                 console.error('loadData error:', e);
                 document.getElementById('balance').innerText = 'Error';
             }
         }
-    </script>
 
-        <!-- Debug Section -->
-        <div class="bg-white rounded-lg shadow p-4 mt-6">
-            <h2 class="text-xl font-semibold mb-2">?? Debug</h2>
-            <div class="flex items-center gap-2">
-                <input type="text" id="manualUserId" placeholder="Enter user ID" class="border rounded px-3 py-2 flex-grow">
-                <button onclick="loadManualUser()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Load Data</button>
-            </div>
-        </div>
-        <script>
-            async function loadManualUser() {
-                const userId = document.getElementById('manualUserId').value;
-                if (!userId) return;
-                await loadData(userId);
+        function loadManualUser() {
+            const id = document.getElementById('manualUserId').value;
+            if (id) {
+                localStorage.setItem('telegram_guardian_user_id', id);
+                loadData(id);
             }
-        </script>
+        }
+    </script>
 </body>
-<!-- v3 --></html>
-
-
-
-
-
-
-
-
-
-
-
-
-
+<!-- v4  final -->
+</html>

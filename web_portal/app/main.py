@@ -1,4 +1,4 @@
-from .payments.ton.router import router as pay_router
+﻿from .payments.ton.router import router as pay_router
 from .manh.router import router as manh_router
 from .tg_ops import router as tg_ops_router
 from .tg_webhook import router as tg_router
@@ -37,7 +37,7 @@ from .p2p.service import create_sell_order, create_buy_order, get_open_orders, c
 
 # ---------- Logging Configuration ----------
 logging.basicConfig(
-    level=logging.DEBUG,  # ניתן לשנות ל-INFO בייצור
+    level=logging.DEBUG,  # × ×™×ھ×ں ×œ×©× ×•×ھ ×œ-INFO ×‘×™×™×¦×•×¨
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[logging.StreamHandler(sys.stdout)]
 )
@@ -54,15 +54,15 @@ def _build_stamp() -> str:
 async def lifespan(app: FastAPI):
     logger.info("APP: lifespan startup")
     
-    # ✅ בדיקת חיבור למסד הנתונים
+    # âœ… ×‘×“×™×§×ھ ×—×™×‘×•×¨ ×œ×‍×،×“ ×”× ×ھ×•× ×™×‌
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
-            logger.info("✅ DB connection successful")
+            logger.info("âœ… DB connection successful")
     except Exception as e:
-        logger.error(f"❌ DB connection failed: {e}", exc_info=True)
+        logger.error(f"â‌Œ DB connection failed: {e}", exc_info=True)
     
-    # בדיקת קיום טבלאות (ללא מיגרציות)
+    # ×‘×“×™×§×ھ ×§×™×•×‌ ×ک×‘×œ×گ×•×ھ (×œ×œ×گ ×‍×™×’×¨×¦×™×•×ھ)
     try:
         inspector = inspect(engine)
         if not inspector.has_table("chat_ids"):
@@ -90,6 +90,19 @@ async def lifespan(app: FastAPI):
 
 # ---------- FastAPI app ----------
 app = FastAPI(title="telegram-guardian", version="tg-guardian-1", lifespan=lifespan)
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # הגבל ל-domains ספציפיים בייצור
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+from prometheus_fastapi_instrumentator import Instrumentator
+Instrumentator().instrument(app).expose(app)
+
 
 # ---------- Templates ----------
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
@@ -336,3 +349,4 @@ def debug_templates_full():
 
 # ---------- Post init ----------
 logger.info(f"TG_GUARDIAN_MAIN_LOADED build={BUILD_STAMP} file={__file__}")
+
