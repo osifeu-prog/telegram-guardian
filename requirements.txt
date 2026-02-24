@@ -16,3 +16,6 @@ qrcode[pil]
 httpx
 pydantic==2.10.6
 pydantic-settings==2.7.1
+
+prometheus-fastapi-instrumentator
+json-logging
