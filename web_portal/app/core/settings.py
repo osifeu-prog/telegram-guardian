@@ -1,4 +1,4 @@
-"""
+﻿"""
 Settings management using Pydantic Settings.
 Unified configuration from environment variables.
 """

@@ -4,6 +4,7 @@ _LAST_UPDATE = None
 _application = None
 import asyncio
 import logging
+import logging.handlers
 import qrcode
 import io
 import os
