@@ -25,6 +25,7 @@ from app.database.models import SecurityLog
 # יבוא כל ה-handlers מהתיקייה החדשה
 from .bot_handlers.start import cmd_start
 from .bot_handlers.help import cmd_help, cmd_all
+from .bot_handlers.menu import cmd_menu, menu_callback
 # TODO: הוסף יבוא לשאר ה-handlers לפי הצורך
 
 # ---------- Logging Configuration ----------
@@ -184,3 +185,4 @@ async def process_update(update_dict: dict) -> dict:
 
 def get_last_update_snapshot():
     return {"started": _STARTED, "last_update": _LAST_UPDATE}
+

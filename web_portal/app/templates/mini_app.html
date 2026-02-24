@@ -16,7 +16,6 @@
     <div class="max-w-6xl mx-auto">
         <div id="tg-status" class="text-sm text-gray-500 mb-2"></div>
         <h1 class="text-3xl font-bold text-gray-800 mb-6">Telegram Guardian Dashboard</h1>
-        
         <div id="user-info" class="text-sm text-gray-500 mb-2"></div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -97,8 +96,8 @@
         console.log('window.Telegram:', window.Telegram);
         const tg = window.Telegram?.WebApp;
         let userId = null;
+        let balanceHistoryChart = null;
 
-        // ניסיון לזהות משתמש דרך טלגרם
         if (tg) {
             tg.ready();
             tg.expand();
@@ -109,7 +108,6 @@
                 document.getElementById('user-info').innerText = ' Telegram user: ' + userId;
                 loadData(userId);
             } else if (tg.initData) {
-                // שליחת initData לשרת לקבלת user_id
                 fetch('/api/get_user_id_from_initdata', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -131,7 +129,6 @@
             document.getElementById('user-info').innerText = ' Running outside Telegram';
         }
 
-        // טעינת מזהה מ-localStorage (אם קיים)
         const savedId = localStorage.getItem('telegram_guardian_user_id');
         if (savedId) {
             document.getElementById('manualUserId').value = savedId;
@@ -140,14 +137,12 @@
         async function loadData(uid) {
             try {
                 const res = await fetch(`/api/user_data?user_id=${uid}`);
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}`);
-                }
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
                 document.getElementById('balance').innerText = data.manh_balance || '0';
                 document.getElementById('xp').innerText = data.xp || '0';
 
-                // הצגת חשבוניות
+                // Render invoices
                 const tbody = document.getElementById('invoices-body');
                 tbody.innerHTML = '';
                 if (data.invoices && data.invoices.length > 0) {
@@ -164,10 +159,37 @@
                     tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-4">No invoices</td></tr>';
                 }
 
-                // P2P orders (אופציונלי)  אפשר להוסיף אח"כ
+                // Load balance history (if endpoint exists)
+                loadBalanceHistory(uid);
             } catch (e) {
                 console.error('loadData error:', e);
                 document.getElementById('balance').innerText = 'Error';
+            }
+        }
+
+        async function loadBalanceHistory(uid) {
+            try {
+                const res = await fetch(`/api/balance_history?user_id=${uid}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                const ctx = document.getElementById('balanceChart').getContext('2d');
+                if (balanceHistoryChart) balanceHistoryChart.destroy();
+                balanceHistoryChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'MANH Balance',
+                            data: data.values,
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            } catch (e) {
+                console.log('Balance history not available');
             }
         }
 
@@ -180,5 +202,5 @@
         }
     </script>
 </body>
-<!-- v4  final -->
+<!-- v5  with chart -->
 </html>
