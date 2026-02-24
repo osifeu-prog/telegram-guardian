@@ -19,3 +19,4 @@ pydantic-settings==2.7.1
 
 prometheus-fastapi-instrumentator
 json-logging
+json-logging
