@@ -1,6 +1,6 @@
 import logging
 from telegram import Bot
-from web_portal.app.core.settings import settings
+from app.core.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -33,4 +33,5 @@ async def send_to_referral_group(bot: Bot, text: str):
         await bot.send_message(chat_id=int(chat_id), text=text)
     except Exception as e:
         logger.error(f"Failed to send to referral group: {e}")
+
 

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from web_portal.app.database.models import User
+from app.database.models import User
 
 def get_leaderboard(db: Session, bucket_scope: str = "daily", bucket_key: str = None, limit: int = 10):
     """
@@ -15,4 +15,5 @@ def get_leaderboard(db: Session, bucket_scope: str = "daily", bucket_key: str = 
             'total_manh': float(user.balance_manh)  # או total_xp לפי הצורך
         })
     return leaderboard
+
 

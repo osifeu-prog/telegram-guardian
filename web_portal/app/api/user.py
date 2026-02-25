@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Request, HTTPException, Query, Depends
 from sqlalchemy.orm import Session
-from web_portal.app.database.models import User, Invoice
-from web_portal.app.db import get_db
-from web_portal.app.core.tg_initdata import verify_telegram_init_data, _parse_tg_user
-from web_portal.app.core.settings import settings
+from app.database.models import User, Invoice
+from app.db import get_db
+from app.core.tg_initdata import verify_telegram_init_data, _parse_tg_user
+from app.core.settings import settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -79,4 +79,5 @@ async def get_user_id_from_initdata(request: Request, db: Session = Depends(get_
         return {"user_id": user_id}
     except Exception as e:
         raise HTTPException(status_code=401, detail=str(e))
+
 

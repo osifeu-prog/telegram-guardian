@@ -14,11 +14,11 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import Session
 
-from web_portal.app.manh.service import award_manh
+from app.manh.service import award_manh
 
 import httpx
-from web_portal.app.core.settings import settings
-from web_portal.app.database.models import Invoice, User
+from app.core.settings import settings
+from app.database.models import Invoice, User
 
 def fetch_ton_transactions(address: str, limit: int = 100):
     """
@@ -236,12 +236,12 @@ def poll_and_confirm_invoices(db: Session, treasury_address: str = None) -> dict
     סורק את כל החשבוניות במצב PENDING ומאמת מול TON Center אם התקבל תשלום.
     מחזיר {'ok': True, 'confirmed': מספר_החשבוניות_שאושרו, 'checked': מספר_העסקאות_שנבדקו}
     """
-    from web_portal.app.payments.ton.toncenter import TonCenter
+    from app.payments.ton.toncenter import TonCenter
     from sqlalchemy import select
-    from web_portal.app.database.models import Invoice, User
+    from app.database.models import Invoice, User
 
     if treasury_address is None:
-        from web_portal.app.core.settings import settings
+        from app.core.settings import settings
         treasury_address = settings.TON_TREASURY_ADDRESS
 
     pending_invoices = db.execute(
@@ -367,6 +367,7 @@ def list_withdrawals(db: Session, *, user_id: int, limit: int = 10) -> list[dict
             }
         )
     return out
+
 
 
 

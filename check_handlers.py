@@ -1,7 +1,7 @@
-﻿import sys
+import sys
 sys.path.append('.')
 try:
-    from web_portal.app.tg_bot import application
+    from app.tg_bot import application
     handlers = application.handlers
     print('Registered handlers:')
     for group in handlers:
@@ -12,3 +12,4 @@ try:
                 print(f'  Other handler: {handler.__class__.__name__}')
 except Exception as e:
     print(f'Error importing bot: {e}')
+

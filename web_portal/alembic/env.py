@@ -17,7 +17,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-from web_portal.app.db import Base  # noqa: E402
+from app.db import Base  # noqa: E402
 from app import models  # noqa: F401,E402
 
 target_metadata = Base.metadata
@@ -68,4 +68,5 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
+
 

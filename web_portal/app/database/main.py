@@ -167,7 +167,7 @@ def _ops_db_check() -> dict:
     # try reuse app.db.engine if exists (preferred), else build a local engine
     eng = None
     try:
-        from web_portal.app.db import engine as _engine  # type: ignore
+        from app.db import engine as _engine  # type: ignore
         eng = _engine
     except Exception:
         eng = create_engine(url, pool_pre_ping=True)
@@ -288,6 +288,7 @@ async def tg_diagnostics():
         "handlers": handlers,
         "last_update": _LAST_UPDATE,
     }
+
 
 
 

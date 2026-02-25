@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.orm import Session
-from web_portal.app.db import get_db
-from web_portal.app.database.models import User, Invoice
+from app.db import get_db
+from app.database.models import User, Invoice
 
 router = APIRouter(prefix="/api", tags=["api"])
 
@@ -40,7 +40,7 @@ async def get_user_data(request: Request, user_id: int = None, db: Session = Dep
 
 @router.get("/orders")
 def get_orders(user_id: int = None, db: Session = Depends(get_db)):
-    from web_portal.app.database.models import P2POrder
+    from app.database.models import P2POrder
     query = db.query(P2POrder).filter(P2POrder.status == 'open')
     if user_id:
         query = query.filter(P2POrder.user_id == user_id)
@@ -55,4 +55,5 @@ def get_orders(user_id: int = None, db: Session = Depends(get_db)):
         }
         for o in orders
     ]
+
 

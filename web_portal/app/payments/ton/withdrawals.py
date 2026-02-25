@@ -1,8 +1,8 @@
 import os
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from web_portal.app.database.models import Withdrawal, User
-from web_portal.app.core.settings import settings
+from app.database.models import Withdrawal, User
+from app.core.settings import settings
 from datetime import datetime
 
 def create_withdrawal(
@@ -90,6 +90,7 @@ def get_user_withdrawals(db: Session, user_id: int) -> list[Withdrawal]:
     return db.execute(
         select(Withdrawal).where(Withdrawal.user_id == user_id).order_by(Withdrawal.requested_at.desc())
     ).scalars().all()
+
 
 
 

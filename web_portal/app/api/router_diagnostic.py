@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
-from web_portal.app.db import get_db
-from web_portal.app.database.models import User, Invoice, Withdrawal, ChatId
-from web_portal.app.core.settings import settings
+from app.db import get_db
+from app.database.models import User, Invoice, Withdrawal, ChatId
+from app.core.settings import settings
 import os
 from datetime import datetime
 
@@ -34,4 +34,5 @@ async def diagnostic_status(authorized: bool = Depends(verify_secret), db: Sessi
             "LOG_LEVEL": os.getenv("LOG_LEVEL", "INFO")
         }
     }
+
 

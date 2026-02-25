@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 from telegram import Update
 from telegram.ext import ContextTypes
-from web_portal.app.db import SessionLocal
+from app.db import SessionLocal
 
 async def cmd_admin_backup(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # הגבלה למשתמש מסוים (החלף ל-ID שלך)
@@ -41,4 +41,5 @@ async def cmd_admin_backup(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("✅ Backup completed and sent.")
     except Exception as e:
         await update.message.reply_text(f"❌ Error: {e}")
+
 

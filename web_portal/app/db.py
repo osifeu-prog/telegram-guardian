@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from web_portal.app.core.settings import settings
+from app.core.settings import settings
 
 logger = logging.getLogger(__name__)
 
@@ -59,3 +59,4 @@ def get_db():
     finally:
         logger.debug("Closing database session")
         db.close()
+

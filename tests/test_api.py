@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
-from web_portal.app.main import app
-from web_portal.app.database import Base
+from app.main import app
+from app.database import Base
 from sqlalchemy import create_engine
 
 # Create tables for test
@@ -21,3 +21,4 @@ def test_get_user_data():
         data = response.json()
         assert "user_id" in data
         assert "manh_balance" in data
+

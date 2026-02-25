@@ -7,7 +7,7 @@ from sqlalchemy.orm import sessionmaker, Session
 
 # Try to reuse existing project DB if present; else fallback to DATABASE_URL
 try:
-    from web_portal.app.db import get_db as _get_db  # type: ignore
+    from app.db import get_db as _get_db  # type: ignore
     def get_db() -> Iterator[Session]:
         yield from _get_db()
 except Exception:
@@ -32,4 +32,5 @@ except Exception:
             yield db
         finally:
             db.close()
+
 

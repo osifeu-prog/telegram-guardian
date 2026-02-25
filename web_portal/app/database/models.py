@@ -1,4 +1,4 @@
-from web_portal.app.db import Base
+from app.db import Base
 from sqlalchemy import Column, String, BigInteger, Numeric, DateTime, ForeignKey, Boolean, Integer, JSON, JSON
 from sqlalchemy import JSON
 from sqlalchemy.sql import func
@@ -158,6 +158,7 @@ class ChatId(Base):
     user_id = Column(BigInteger, nullable=True)
     first_seen = Column(DateTime, default=datetime.utcnow)
     last_interaction = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 
 
 
