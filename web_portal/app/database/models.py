@@ -1,4 +1,4 @@
-from app.db import Base
+from web_portal.app.db import Base
 from sqlalchemy import Column, String, BigInteger, Numeric, DateTime, ForeignKey, Boolean, Integer, JSON, JSON
 from sqlalchemy import JSON
 from sqlalchemy.sql import func
@@ -8,6 +8,7 @@ from uuid import uuid4
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(BigInteger, primary_key=True, index=True)
     username = Column(String, nullable=True)
@@ -28,6 +29,7 @@ class User(Base):
 
 class Withdrawal(Base):
     __tablename__ = "withdrawals"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(String, primary_key=True)
     user_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
@@ -44,6 +46,7 @@ class Withdrawal(Base):
 
 class Invoice(Base):
     __tablename__ = "invoices"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(String, primary_key=True)
     user_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
@@ -60,6 +63,7 @@ class Invoice(Base):
 
 class Referral(Base):
     __tablename__ = "referrals"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(String, primary_key=True, default=lambda: uuid4().hex)
     referrer_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
@@ -73,6 +77,7 @@ class Referral(Base):
 # Unified P2P Order model (used by current tg_bot.py)
 class P2POrder(Base):
     __tablename__ = 'p2p_orders'
+    __table_args__ = {'extend_existing': True}
     
     id = Column(String, primary_key=True, default=lambda: uuid4().hex)
     user_id = Column(BigInteger, ForeignKey('users.id'), nullable=False)
@@ -88,6 +93,7 @@ class P2POrder(Base):
 # Legacy models (for backward compatibility)
 class SellOrder(Base):
     __tablename__ = "sell_orders"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(String, primary_key=True, default=lambda: uuid4().hex)
     user_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
@@ -103,6 +109,7 @@ class SellOrder(Base):
 
 class BuyOrder(Base):
     __tablename__ = "buy_orders"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(String, primary_key=True, default=lambda: uuid4().hex)
     user_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
@@ -118,6 +125,7 @@ class BuyOrder(Base):
 
 class Trade(Base):
     __tablename__ = "trades"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(String, primary_key=True, default=lambda: uuid4().hex)
     sell_order_id = Column(String, ForeignKey("sell_orders.id"), nullable=True)
@@ -135,6 +143,7 @@ class Trade(Base):
 
 class SecurityLog(Base):
     __tablename__ = 'security_logs'
+    __table_args__ = {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     event_type = Column(String, nullable=False)
     user_id = Column(BigInteger, nullable=True)
@@ -143,11 +152,14 @@ class SecurityLog(Base):
 
 class ChatId(Base):
     __tablename__ = 'chat_ids'
+    __table_args__ = {'extend_existing': True}
     id = Column(Integer, primary_key=True)
     chat_id = Column(BigInteger, unique=True, nullable=False)
     user_id = Column(BigInteger, nullable=True)
     first_seen = Column(DateTime, default=datetime.utcnow)
     last_interaction = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 
 
 

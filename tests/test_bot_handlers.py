@@ -1,4 +1,4 @@
-import pytest
+﻿import pytest
 import sys
 import os
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -43,6 +43,8 @@ def mock_settings(monkeypatch):
     def fake_getenv(key, default=None):
         if key == 'DATABASE_URL':
             return 'sqlite:///:memory:'
+        if key == 'INTERNAL_SIGNING_SECRET':
+            return 'a'*32  # dummy secret
         return default
     monkeypatch.setattr(os, 'getenv', fake_getenv)
 

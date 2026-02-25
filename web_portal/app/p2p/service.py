@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from app.database.models import User, SellOrder, BuyOrder, Trade
+from web_portal.app.database.models import User, SellOrder, BuyOrder, Trade
 from decimal import Decimal
 from uuid import uuid4
 from datetime import datetime, timedelta
@@ -137,4 +137,5 @@ def cancel_order(db: Session, user_id: int, order_id: str, order_type: str) -> b
     order.status = "cancelled"
     db.commit()
     return True
+
 

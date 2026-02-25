@@ -1,9 +1,9 @@
-﻿from fastapi import APIRouter, Request, HTTPException, Query, Depends
+from fastapi import APIRouter, Request, HTTPException, Query, Depends
 from sqlalchemy.orm import Session
-from app.database.models import User, Invoice
-from app.db import get_db
-from app.core.tg_initdata import verify_telegram_init_data, _parse_tg_user
-from app.core.settings import settings
+from web_portal.app.database.models import User, Invoice
+from web_portal.app.db import get_db
+from web_portal.app.core.tg_initdata import verify_telegram_init_data, _parse_tg_user
+from web_portal.app.core.settings import settings
 import logging
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ async def get_user_data(
     user_id: int = Query(None, description="Telegram user ID"),
     db: Session = Depends(get_db)
 ):
-    # אם user_id לא סופק, ננסה לחלץ מה-initData
+    # ?? user_id ?? ????, ???? ???? ??-initData
     if user_id is None:
         init_data = request.headers.get("X-Tg-Init-Data") or request.query_params.get("initData")
         if init_data and settings.BOT_TOKEN:
@@ -64,7 +64,7 @@ async def get_user_id_from_initdata(request: Request, db: Session = Depends(get_
         user_id = user_data.get("id")
         if not user_id:
             raise HTTPException(status_code=400, detail="user id not found")
-        # יצירת משתמש אם לא קיים
+        # ????? ????? ?? ?? ????
         user = db.get(User, user_id)
         if not user:
             user = User(
@@ -79,3 +79,4 @@ async def get_user_id_from_initdata(request: Request, db: Session = Depends(get_
         return {"user_id": user_id}
     except Exception as e:
         raise HTTPException(status_code=401, detail=str(e))
+

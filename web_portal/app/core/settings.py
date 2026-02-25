@@ -1,11 +1,11 @@
-"""
+﻿"""
 Settings management using Pydantic Settings.
 Unified configuration from environment variables.
 """
 
 from typing import List, Optional
 from pydantic_settings import BaseSettings
-from pydantic import field_validator
+from pydantic import field_validator, ConfigDict
 
 
 class Settings(BaseSettings):
@@ -19,19 +19,9 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: str = "sqlite:///./test.db"
-
-    # TON
-    TON_TREASURY_ADDRESS: str = ""
-    TON_API_KEY: str = ""
     TON_NETWORK: str = "testnet"
-    TONCENTER_BASE_URL: str = "https://toncenter.com/api/v2"
-    TON_PAYMENT_PROVIDER: str = "manual"
-
-    # Price
     MANH_PRICE_ILS: float = 5.2
     TON_ILS_MANUAL: str = "5.2"
-
-    # Withdrawal
     MIN_WITHDRAWAL: float = 0.000001
 
     # Admin
@@ -60,10 +50,7 @@ class Settings(BaseSettings):
     RAILWAY_GIT_COMMIT_SHA: str = ""
     LOG_LEVEL: str = "INFO"
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-        extra = "allow"  # Allow extra fields from environment
+    model_config = ConfigDict(env_file=".env", case_sensitive=True, extra="allow")
 
 
 settings = Settings()

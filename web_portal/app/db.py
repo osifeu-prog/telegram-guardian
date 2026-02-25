@@ -3,7 +3,7 @@ from __future__ import annotations
 import logging
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
-from app.core.settings import settings
+from web_portal.app.core.settings import settings
 
 logger = logging.getLogger(__name__)
 

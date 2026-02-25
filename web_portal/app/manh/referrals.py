@@ -1,4 +1,4 @@
-from app.database.models import User, Referral
+from web_portal.app.database.models import User, Referral
 from sqlalchemy.orm import Session
 from datetime import datetime
 from uuid import uuid4
@@ -32,3 +32,4 @@ def process_referral(db: Session, referrer_code: str, new_user_id: int) -> dict:
     db.add(referrer)
     db.commit()
     return {"ok": True, "referrer_id": referrer.id}
+

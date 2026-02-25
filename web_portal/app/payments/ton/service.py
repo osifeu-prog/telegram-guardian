@@ -14,11 +14,11 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import Session
 
-from app.manh.service import award_manh
+from web_portal.app.manh.service import award_manh
 
 import httpx
-from app.core.settings import settings
-from app.database.models import Invoice, User
+from web_portal.app.core.settings import settings
+from web_portal.app.database.models import Invoice, User
 
 def fetch_ton_transactions(address: str, limit: int = 100):
     """
@@ -170,7 +170,7 @@ def list_invoices(db: Session, *, user_id: int, limit: int = 10) -> list[dict[st
     rows = db.execute(
         text(
             """
-            SELECT invoice_id, status, ils_amount::numeric, manh_amount::numeric, ton_amount::numeric,
+            SELECT invoice_id, status, ils_amount, manh_amount, ton_amount,
                    comment, created_at, expires_at, confirmed_at
             FROM manh_invoices
             WHERE user_id=:u
@@ -236,12 +236,12 @@ def poll_and_confirm_invoices(db: Session, treasury_address: str = None) -> dict
     סורק את כל החשבוניות במצב PENDING ומאמת מול TON Center אם התקבל תשלום.
     מחזיר {'ok': True, 'confirmed': מספר_החשבוניות_שאושרו, 'checked': מספר_העסקאות_שנבדקו}
     """
-    from app.payments.ton.toncenter import TonCenter
+    from web_portal.app.payments.ton.toncenter import TonCenter
     from sqlalchemy import select
-    from app.database.models import Invoice, User
+    from web_portal.app.database.models import Invoice, User
 
     if treasury_address is None:
-        from app.core.settings import settings
+        from web_portal.app.core.settings import settings
         treasury_address = settings.TON_TREASURY_ADDRESS
 
     pending_invoices = db.execute(
@@ -292,7 +292,7 @@ def poll_and_confirm_invoices(db: Session, treasury_address: str = None) -> dict
 def eligible_for_withdrawal(db: Session, user_id: int) -> bool:
     # must have purchased >= MIN_BUY_FOR_WITHDRAWAL (from owner)
     row = db.execute(
-        text("""SELECT COALESCE(SUM(manh_amount),0)::numeric FROM manh_purchases WHERE user_id=:u"""),
+        text("""SELECT COALESCE(SUM(manh_amount),0) FROM manh_purchases WHERE user_id=:u"""),
         {"u": user_id},
     ).fetchone()
     total = Decimal(str(row[0])) if row else Decimal("0")
@@ -319,7 +319,7 @@ def create_withdrawal_request(
     # ensure opted-in is NOT required for withdrawal (privacy)
     # balance check using manh ledger
     row = db.execute(
-        text("""SELECT COALESCE(SUM(amount_manh),0)::numeric FROM manh_ledger WHERE user_id=:u"""),
+        text("""SELECT COALESCE(SUM(amount_manh),0) FROM manh_ledger WHERE user_id=:u"""),
         {"u": user_id},
     ).fetchone()
     bal = Decimal(str(row[0])) if row else Decimal("0")
@@ -345,7 +345,7 @@ def list_withdrawals(db: Session, *, user_id: int, limit: int = 10) -> list[dict
     rows = db.execute(
         text(
             """
-            SELECT withdrawal_id, status, amount_manh::numeric, target_ton_address, created_at, decided_at
+            SELECT withdrawal_id, status, amount_manh, target_ton_address, created_at, decided_at
             FROM manh_withdrawals
             WHERE user_id=:u
             ORDER BY created_at DESC
@@ -367,6 +367,8 @@ def list_withdrawals(db: Session, *, user_id: int, limit: int = 10) -> list[dict
             }
         )
     return out
+
+
 
 
 

@@ -71,7 +71,7 @@ def ensure_schema(db: Session) -> None:
         CREATE TABLE IF NOT EXISTS manh_users (
             user_id BIGINT PRIMARY KEY,
             username VARCHAR(255),
-            created_at TIMESTAMPTZ DEFAULT now()
+            created_at TIMESTAMP DEFAULT now()
         );
     """))
 
@@ -79,7 +79,7 @@ def ensure_schema(db: Session) -> None:
         CREATE TABLE IF NOT EXISTS manh_accounts (
             user_id BIGINT PRIMARY KEY,
             opted_in BOOLEAN NOT NULL DEFAULT FALSE,
-            created_at TIMESTAMPTZ DEFAULT now()
+            created_at TIMESTAMP DEFAULT now()
         );
     """))
 
@@ -91,7 +91,7 @@ def ensure_schema(db: Session) -> None:
             event_type VARCHAR(64) NOT NULL,
             bucket VARCHAR(32) NOT NULL,
             fingerprint_json JSONB NOT NULL,
-            created_at TIMESTAMPTZ DEFAULT now(),
+            created_at TIMESTAMP DEFAULT now(),
             CONSTRAINT uq_manh_event_user_hash UNIQUE (user_id, event_hash)
         );
     """))
@@ -105,7 +105,7 @@ def ensure_schema(db: Session) -> None:
             bucket_scope VARCHAR(16) NOT NULL DEFAULT 'daily',
             bucket_key VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
             meta_json JSONB NOT NULL DEFAULT '{}'::jsonb,
-            created_at TIMESTAMPTZ DEFAULT now()
+            created_at TIMESTAMP DEFAULT now()
         );
     """))
 
@@ -188,7 +188,7 @@ def award_manh(
 def get_balance(db: Session, user_id: int) -> dict[str, Any]:
     ensure_schema(db)
     row = db.execute(text("""
-        SELECT COALESCE(SUM(amount_manh), 0)::numeric
+        SELECT COALESCE(SUM(amount_manh), 0)
         FROM manh_ledger
         WHERE user_id=:u
     """), {"u": user_id}).fetchone()
@@ -199,7 +199,7 @@ def get_balance(db: Session, user_id: int) -> dict[str, Any]:
 def leaderboard(db: Session, *, bucket_scope: str, bucket_key: str, limit: int = 10) -> list[dict[str, Any]]:
     ensure_schema(db)
     rowset = db.execute(text("""
-        SELECT u.user_id, COALESCE(u.username,'') AS username, SUM(l.amount_manh)::numeric AS total
+        SELECT u.user_id, COALESCE(u.username,'') AS username, SUM(l.amount_manh) AS total
         FROM manh_ledger l
         JOIN manh_users u ON u.user_id=l.user_id
         JOIN manh_accounts a ON a.user_id=l.user_id
@@ -212,3 +212,4 @@ def leaderboard(db: Session, *, bucket_scope: str, bucket_key: str, limit: int =
     """), {"s": bucket_scope, "k": bucket_key, "lim": int(limit)}).fetchall()
 
     return [{"user_id": int(r[0]), "username": r[1], "total_manh": str(r[2])} for r in rowset]
+

@@ -1,11 +1,11 @@
-﻿from telegram import Update
+from telegram import Update
 from telegram.ext import ContextTypes
 from sqlalchemy.orm import Session
 from uuid import uuid4
 from datetime import datetime
 
-from app.db import SessionLocal
-from app.database.models import User, Referral
+from web_portal.app.db import SessionLocal
+from web_portal.app.database.models import User, Referral
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     db = SessionLocal()
@@ -40,3 +40,4 @@ async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Welcome back! Use /help to see available commands.")
     finally:
         db.close()
+

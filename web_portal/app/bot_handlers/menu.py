@@ -1,6 +1,6 @@
-﻿from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ContextTypes
-from app.core.settings import settings
+from web_portal.app.core.settings import settings
 
 async def cmd_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
@@ -33,3 +33,4 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     }
     text = texts.get(data, "Unknown option")
     await query.edit_message_text(text, reply_markup=query.message.reply_markup)
+

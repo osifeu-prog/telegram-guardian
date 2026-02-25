@@ -25,17 +25,17 @@ from telegram.ext import Application, CommandHandler, ContextTypes, CallbackQuer
 
 from sqlalchemy.orm import Session
 
-from app.core.settings import settings
-from app.db import SessionLocal
-from app.database.models import User, Referral, P2POrder, Invoice, SecurityLog
-from app.manh.service import get_balance
-from app.payments.ton.price_feed import get_ton_ils_cached
-from app.payments.ton.service import create_invoice, list_invoices, poll_and_confirm_invoices
-from app.payments.ton.withdrawals import create_withdrawal, get_user_withdrawals, approve_withdrawal, reject_withdrawal
-from app.manh.leaderboard import get_leaderboard
-from app.manh.referrals import set_referral_code, get_user_referrals, process_referral
-from app.p2p.service import create_sell_order, create_buy_order, get_open_orders, cancel_order, match_orders
-from app.manh.admin_backup import cmd_admin_backup
+from web_portal.app.core.settings import settings
+from web_portal.app.db import SessionLocal
+from web_portal.app.database.models import User, Referral, P2POrder, Invoice, SecurityLog
+from web_portal.app.manh.service import get_balance
+from web_portal.app.payments.ton.price_feed import get_ton_ils_cached
+from web_portal.app.payments.ton.service import create_invoice, list_invoices, poll_and_confirm_invoices
+from web_portal.app.payments.ton.withdrawals import create_withdrawal, get_user_withdrawals, approve_withdrawal, reject_withdrawal
+from web_portal.app.manh.leaderboard import get_leaderboard
+from web_portal.app.manh.referrals import set_referral_code, get_user_referrals, process_referral
+from web_portal.app.p2p.service import create_sell_order, create_buy_order, get_open_orders, cancel_order, match_orders
+from web_portal.app.manh.admin_backup import cmd_admin_backup
 
 # ---------- Logging Configuration ----------
 log_handler = logging.handlers.RotatingFileHandler('bot.log', maxBytes=10*1024*1024, backupCount=5)
