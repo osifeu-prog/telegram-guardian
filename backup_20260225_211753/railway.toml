@@ -1,0 +1,8 @@
+﻿# railway.toml
+# Force Railway to use the root Dockerfile (avoid picking subfolder Dockerfiles)
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/health"

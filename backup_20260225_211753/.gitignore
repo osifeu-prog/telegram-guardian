@@ -1,0 +1,68 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+env/
+venv/
+venv311/
+ENV/
+env.bak/
+venv.bak/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+bot.log
+
+# Database
+*.db
+*.sqlite3
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.development
+
+# Backups
+backups/
+*.bak
+*.backup
+*.old
+*.back
+*.py.backup*
+*.backup_*
+
+# Diagnostics
+diagnostic_*.txt
+system_info_*.txt
+
+# Misc
+*.ps1
+package.json
+node_modules/
+.expo/
+out/
+web_portal/alembic/script.py.mako
+webapp/
+bot_demo/
+policy/
+tools/
+index.js
+*.zip
+fix_column.py
+DECISIONS.md
+ROADMAP.md
+STATE.example.md
+.editorconfig
+.gitattributes
+.redeploy

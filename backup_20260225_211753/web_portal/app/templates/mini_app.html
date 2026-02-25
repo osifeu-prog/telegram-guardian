@@ -1,0 +1,206 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Guardian Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background-color: #f3f4f6; }
+        .card { transition: all 0.2s; }
+        .card:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 font-sans">
+    <div class="max-w-6xl mx-auto">
+        <div id="tg-status" class="text-sm text-gray-500 mb-2"></div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Telegram Guardian Dashboard</h1>
+        <div id="user-info" class="text-sm text-gray-500 mb-2"></div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="card bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-lg shadow p-6">
+                <div class="text-lg opacity-90">MANH Balance</div>
+                <div class="text-4xl font-bold" id="balance">-</div>
+            </div>
+            <div class="card bg-gradient-to-r from-purple-400 to-pink-500 text-white rounded-lg shadow p-6">
+                <div class="text-lg opacity-90">XP</div>
+                <div class="text-4xl font-bold" id="xp">-</div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4 mb-6">
+            <h2 class="text-xl font-semibold mb-2">Balance History</h2>
+            <canvas id="balanceChart" height="100"></canvas>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow p-4">
+                <h2 class="text-xl font-semibold mb-2"> Recent Invoices</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ILS</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">TON</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">MANH</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoices-body" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-4">
+                <h2 class="text-xl font-semibold mb-2"> Open P2P Orders</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Price (TON)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-body" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-4">
+            <h2 class="text-xl font-semibold mb-2"> Quick Actions</h2>
+            <div class="flex flex-wrap gap-2">
+                <button onclick="tg?.openTelegramLink('https://t.me/MY_NFT_SHOP_bot?start=buy_10')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Buy 10 ILS</button>
+                <button onclick="tg?.openTelegramLink('https://t.me/MY_NFT_SHOP_bot?start=sell_1_2')" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Sell 1 MANH @2 TON</button>
+                <button onclick="tg?.openTelegramLink('https://t.me/MY_NFT_SHOP_bot?start=withdraw_1')" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">Withdraw 1 MANH</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debug Section -->
+    <div class="bg-white rounded-lg shadow p-4 mt-6 max-w-6xl mx-auto">
+        <h2 class="text-xl font-semibold mb-2"> Debug</h2>
+        <div class="flex items-center gap-2">
+            <input type="text" id="manualUserId" placeholder="Enter user ID" class="border rounded px-3 py-2 flex-grow">
+            <button onclick="loadManualUser()" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Load Data</button>
+        </div>
+    </div>
+
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+        // === Mini-App Debug ===
+        console.log('window.Telegram:', window.Telegram);
+        const tg = window.Telegram?.WebApp;
+        let userId = null;
+        let balanceHistoryChart = null;
+
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            console.log('tg.initDataUnsafe:', tg.initDataUnsafe);
+            const user = tg.initDataUnsafe?.user;
+            if (user?.id) {
+                userId = user.id;
+                document.getElementById('user-info').innerText = ' Telegram user: ' + userId;
+                loadData(userId);
+            } else if (tg.initData) {
+                fetch('/api/get_user_id_from_initdata', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ initData: tg.initData })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.user_id) {
+                        userId = data.user_id;
+                        document.getElementById('user-info').innerText = ' Telegram (via initData): ' + userId;
+                        loadData(userId);
+                    }
+                })
+                .catch(err => console.error('initData error:', err));
+            } else {
+                document.getElementById('user-info').innerText = ' Telegram user not identified';
+            }
+        } else {
+            document.getElementById('user-info').innerText = ' Running outside Telegram';
+        }
+
+        const savedId = localStorage.getItem('telegram_guardian_user_id');
+        if (savedId) {
+            document.getElementById('manualUserId').value = savedId;
+        }
+
+        async function loadData(uid) {
+            try {
+                const res = await fetch(`/api/user_data?user_id=${uid}`);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const data = await res.json();
+                document.getElementById('balance').innerText = data.manh_balance || '0';
+                document.getElementById('xp').innerText = data.xp || '0';
+
+                // Render invoices
+                const tbody = document.getElementById('invoices-body');
+                tbody.innerHTML = '';
+                if (data.invoices && data.invoices.length > 0) {
+                    data.invoices.forEach(inv => {
+                        const row = tbody.insertRow();
+                        row.insertCell().innerHTML = `<span class="text-sm">${inv.id.substring(0,8)}...</span>`;
+                        row.insertCell().innerHTML = `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${inv.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">${inv.status}</span>`;
+                        row.insertCell().innerText = inv.ils_amount;
+                        row.insertCell().innerText = inv.ton_amount;
+                        row.insertCell().innerText = inv.manh_amount;
+                        row.insertCell().innerText = new Date(inv.created_at).toLocaleDateString();
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-gray-500 py-4">No invoices</td></tr>';
+                }
+
+                // Load balance history (if endpoint exists)
+                loadBalanceHistory(uid);
+            } catch (e) {
+                console.error('loadData error:', e);
+                document.getElementById('balance').innerText = 'Error';
+            }
+        }
+
+        async function loadBalanceHistory(uid) {
+            try {
+                const res = await fetch(`/api/balance_history?user_id=${uid}`);
+                if (!res.ok) return;
+                const data = await res.json();
+                const ctx = document.getElementById('balanceChart').getContext('2d');
+                if (balanceHistoryChart) balanceHistoryChart.destroy();
+                balanceHistoryChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: 'MANH Balance',
+                            data: data.values,
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            } catch (e) {
+                console.log('Balance history not available');
+            }
+        }
+
+        function loadManualUser() {
+            const id = document.getElementById('manualUserId').value;
+            if (id) {
+                localStorage.setItem('telegram_guardian_user_id', id);
+                loadData(id);
+            }
+        }
+    </script>
+</body>
+<!-- v5  with chart -->
+</html>
