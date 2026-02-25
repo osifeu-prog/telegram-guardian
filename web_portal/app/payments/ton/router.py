@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
-from web_portal.app.manh.storage import get_db
+from app.manh.storage import get_db
 from .price_feed import get_ton_ils_cached
 from .toncenter import TonCenter
 from .service import (
